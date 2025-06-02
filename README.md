@@ -1,46 +1,63 @@
-# Getting Started with Create React App
+# SmartServe CRM Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack AI-powered CRM solution designed for the Xeno SDE Internship Assignment 2025. Built with Google OAuth, segmentation, automated messaging, and campaign analytics.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+### ✅ Core Modules
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+* **Authentication**: Google OAuth 2.0 + JWT
+* **Customer Management**: CRUD operations with validations
+* **Order Management**: Create, retrieve, and update orders
+* **Campaigns**:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+  * Segment builder with AND/OR logic
+  * Audience preview + activation
+  * Message delivery simulation with 90% success
+* **AI Tools**:
 
-### `npm test`
+  * Natural language to rule conversion
+  * Smart message generator
+  * Fallback model strategy
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🛠️ Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 🧩 Backend
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+* Node.js, Express.js
+* MongoDB (with Mongoose ODM)
+* Passport.js (Google OAuth)
+* JWT Authentication
+* Gemini API (Google Generative AI)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 🎨 Frontend
 
-### `npm run eject`
+* React.js with TypeScript
+* Chakra UI
+* React Query Builder
+* Chart.js
+* Axios
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Dev Tools
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+* Nodemon, ESLint, Prettier
+* Postman (for testing APIs)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+---
 
-## Learn More
+## 🧭 Architecture Diagram
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Frontend  │◄────►│   Backend   │◄────►│  Database   │
+│ React + TS  │      │ Node + JWT  │      │  MongoDB    │
+└─────────────┘      └─────────────┘      └─────────────┘
+                           ▲
+                           │
+                     ┌─────┴─────┐
+                     │   AI API  │
