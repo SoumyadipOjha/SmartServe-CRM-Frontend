@@ -1,63 +1,193 @@
 # SmartServe CRM Platform
 
-A full-stack AI-powered CRM solution designed for the Xeno SDE Internship Assignment 2025. Built with Google OAuth, segmentation, automated messaging, and campaign analytics.
+A comprehensive CRM platform built for the Xeno SDE Internship Assignment 2025, featuring customer segmentation, campaign delivery, and AI-powered insights.
 
 ---
 
-## 🚀 Features
+## 🔧 Folder Structure
 
-### ✅ Core Modules
-
-* **Authentication**: Google OAuth 2.0 + JWT
-* **Customer Management**: CRUD operations with validations
-* **Order Management**: Create, retrieve, and update orders
-* **Campaigns**:
-
-  * Segment builder with AND/OR logic
-  * Audience preview + activation
-  * Message delivery simulation with 90% success
-* **AI Tools**:
-
-  * Natural language to rule conversion
-  * Smart message generator
-  * Fallback model strategy
-
----
-
-## 🛠️ Tech Stack
-
-### 🧩 Backend
-
-* Node.js, Express.js
-* MongoDB (with Mongoose ODM)
-* Passport.js (Google OAuth)
-* JWT Authentication
-* Gemini API (Google Generative AI)
-
-### 🎨 Frontend
-
-* React.js with TypeScript
-* Chakra UI
-* React Query Builder
-* Chart.js
-* Axios
-
-### Dev Tools
-
-* Nodemon, ESLint, Prettier
-* Postman (for testing APIs)
-
-
----
-
-## 🧭 Architecture Diagram
+### 📁 Backend (Express.js, MongoDB, Passport, OpenAI)
 
 ```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│   Frontend  │◄────►│   Backend   │◄────►│  Database   │
-│ React + TS  │      │ Node + JWT  │      │  MongoDB    │
-└─────────────┘      └─────────────┘      └─────────────┘
-                           ▲
-                           │
-                     ┌─────┴─────┐
-                     │   AI API  │
+backend/
+├── config/                    # Config files (e.g., DB, passport)
+├── controllers/              # All route controllers
+├── middleware/               # Middlewares (auth, validation, error)
+├── models/                   # Mongoose models
+├── routes/                   # REST API routes
+├── services/                 # AI and vendor logic
+├── .env                      # Environment variables
+├── index.js                  # App entry point
+└── package.json              # Backend dependencies
+```
+
+### 🖥 Frontend (React + TypeScript + Vite + Tailwind)
+
+```
+frontend/
+├── public/                   # Static assets
+├── src/
+│   ├── components/           # Layout, Navbar, IconWrapper
+│   ├── context/              # AuthContext
+│   ├── pages/                # Pages (Dashboard, Orders, Campaigns...)
+│   ├── services/             # API services (auth, orders, campaigns)
+│   ├── types/                # TypeScript models & interfaces
+│   └── utils/                # Utility helpers
+├── .env                      # Vite env config
+├── App.tsx                   # App root component
+├── main.tsx                  # App entry point
+└── package.json              # Frontend dependencies
+```
+
+---
+
+## 🧠 Architecture Diagram
+
+```
+┌────────────────────┐
+│   Frontend (React) │
+│  Vercel + Netlify  │
+└───────┬────────────┘
+        │ REST APIs
+        ▼
+┌────────────────────┐
+│  Backend (Express) │ ◄──────────────┐
+│  Render Hosted     │                │
+└───────┬────────────┘                │
+        ▼                             │
+┌────────────────────┐     ┌─────────▼─────────┐
+│ MongoDB Atlas      │     │ Google Gen AI API │
+└────────────────────┘     └───────────────────┘
+```
+
+---
+
+## 🌐 Hosted Links
+
+* 🔗 **Backend API**: [https://smartserve-crm-backend.onrender.com](https://smartserve-crm-backend.onrender.com)
+* 🔗 **Live Demo**: Postman Mock: [https://smart-serve-crm-frontend.vercel.app/in](https://smart-serve-crm-frontend.vercel.app/in)
+
+---
+
+## 📦 Local Setup Instructions
+
+### Prerequisites
+
+* Node.js 18+
+* MongoDB (local or Atlas)
+* Google Cloud credentials (OAuth + Gemini)
+
+### Backend Setup
+
+```bash
+git clone https://github.com/your-username/xeno-crm.git
+cd xeno-crm/backend
+npm install
+```
+
+### Create `.env`
+
+```
+MONGODB_URI=your-mongodb-uri
+JWT_SECRET=your-secret
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=https://smartserve-crm-backend.onrender.com/api/auth/google/callback
+CLIENT_URL=https://smart-serve-crm.netlify.app
+GEMINI_API_KEY=...
+```
+
+### Run Backend
+
+```bash
+npm run dev
+```
+
+### Frontend Setup
+
+```bash
+cd ../frontend
+npm install
+npm start
+```
+
+---
+
+## 📋 API Endpoints (Postman-Ready)
+
+### 🔐 Auth (Google OAuth)
+
+```
+GET /api/auth/google
+GET /api/auth/google/callback
+GET /api/auth/me
+```
+
+### 👥 Customers
+
+```
+POST   /api/customers
+GET    /api/customers
+GET    /api/customers/:id
+PUT    /api/customers/:id
+DELETE /api/customers/:id
+```
+
+### 🧾 Orders
+
+```
+POST   /api/orders
+GET    /api/orders
+GET    /api/orders/:id
+GET    /api/orders/customer/:customerId
+PATCH  /api/orders/:id/status
+```
+
+### 📢 Campaigns
+
+```
+POST   /api/campaigns
+GET    /api/campaigns
+POST   /api/campaigns/preview
+GET    /api/campaigns/:id/stats
+POST   /api/campaigns/:id/activate
+GET    /api/campaigns/:id
+```
+
+### 🤖 AI
+
+```
+POST   /api/ai/convert-rules
+POST   /api/ai/generate-message
+```
+
+---
+
+## 🧠 AI Capabilities Summary
+
+* Natural language to rule conversion ("high spenders in last 30 days")
+* AI-generated campaign message suggestions
+* Performance summary using Generative AI
+* Multimodal fallback (Gemini 2.0 Flash → 1.5 Flash → 1.5 Pro)
+
+---
+
+## ⚠️ Known Limitations
+
+* Campaign delivery is synchronous
+* No image support in campaign messages
+* Vendor delivery simulation (90% success)
+
+## 🔮 Future Scope
+
+* Mobile app version
+* Email & rich template support
+* Drag & drop template designer
+* A/B testing for campaign performance
+* Real-time analytics dashboard
+
+---
+
+## 📄 License
+
+MIT License. See `LICENSE` file.
