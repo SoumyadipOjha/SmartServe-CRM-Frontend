@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const textColor = useColorModeValue('gray.700', 'gray.200');
   const subtleText = useColorModeValue('gray.600', 'gray.400');
-  const successColor = useColorModeValue('teal.500', 'teal.300');
+  const successColor = useColorModeValue('pink.500', 'pink.300');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -98,7 +98,7 @@ const Dashboard: React.FC = () => {
           borderRadius="lg" 
           bg={cardBg}
           borderLeft="4px solid"
-          borderColor="teal.400"
+          borderColor="pink.400"
           transition="transform 0.3s"
           _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }}
         >
@@ -113,8 +113,8 @@ const Dashboard: React.FC = () => {
             <Flex 
               w="12" 
               h="12" 
-              bg="teal.50" 
-              color="teal.400" 
+              bg="pink.50" 
+              color="pink.400" 
               borderRadius="full" 
               align="center" 
               justify="center"
@@ -130,7 +130,7 @@ const Dashboard: React.FC = () => {
           borderRadius="lg" 
           bg={cardBg}
           borderLeft="4px solid"
-          borderColor="blue.400"
+          borderColor="pink.400"
           transition="transform 0.3s"
           _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }}
         >
@@ -145,8 +145,8 @@ const Dashboard: React.FC = () => {
             <Flex 
               w="12" 
               h="12" 
-              bg="blue.50" 
-              color="blue.400" 
+              bg="pink.50" 
+              color="pink.400" 
               borderRadius="full" 
               align="center" 
               justify="center"
@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
           borderRadius="lg" 
           bg={cardBg}
           borderLeft="4px solid"
-          borderColor="green.400"
+          borderColor="pink.400"
           transition="transform 0.3s"
           _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }}
         >
@@ -171,7 +171,7 @@ const Dashboard: React.FC = () => {
               <StatLabel fontSize="sm" color={subtleText}>Total Revenue</StatLabel>
               <StatNumber fontSize="2xl" fontWeight="bold" color={textColor}>${totalRevenue.toFixed(2)}</StatNumber>
               <StatHelpText mb={0}>
-                <Flex align="center" color="green.500">
+                <Flex align="center" color="pink.500">
                   <Icon as={FiArrowUp} mr={1} />
                   <Text fontSize="sm">From all orders</Text>
                 </Flex>
@@ -180,8 +180,8 @@ const Dashboard: React.FC = () => {
             <Flex 
               w="12" 
               h="12" 
-              bg="green.50" 
-              color="green.400" 
+              bg="pink.50" 
+              color="pink.400" 
               borderRadius="full" 
               align="center" 
               justify="center"
@@ -197,7 +197,7 @@ const Dashboard: React.FC = () => {
           borderRadius="lg" 
           bg={cardBg}
           borderLeft="4px solid"
-          borderColor="purple.400"
+          borderColor="pink.400"
           transition="transform 0.3s"
           _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }}
         >
@@ -212,8 +212,8 @@ const Dashboard: React.FC = () => {
             <Flex 
               w="12" 
               h="12" 
-              bg="purple.50" 
-              color="purple.400" 
+              bg="pink.50" 
+              color="pink.400" 
               borderRadius="full" 
               align="center" 
               justify="center"
@@ -243,7 +243,7 @@ const Dashboard: React.FC = () => {
                 >
                   <Flex justify="space-between" mb={2}>
                     <Heading size="sm">{campaign.name}</Heading>
-                    <Badge colorScheme={campaign.status === 'active' ? 'green' : 'gray'}>
+                    <Badge colorScheme={campaign.status === 'active' ? 'pink' : 'gray'}>
                       {campaign.status}
                     </Badge>
                   </Flex>
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
                         : 0
                       } 
                       size="sm" 
-                      colorScheme="teal" 
+                      colorScheme="pink" 
                       borderRadius="full" 
                     />
                   </Box>
@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
               <Button 
                 as={RouterLink} 
                 to="/campaigns" 
-                colorScheme="teal" 
+                colorScheme="pink" 
                 size="sm"
               >
                 View all campaigns
@@ -303,7 +303,7 @@ const Dashboard: React.FC = () => {
                 <React.Fragment key={customer._id}>
                   <Flex p={4} align="center">
                     <Box 
-                      bg="teal.400"
+                      bg="pink.400"
                       color="white"
                       borderRadius="full"
                       w={10}
@@ -348,7 +348,7 @@ const Dashboard: React.FC = () => {
                         {new Date(order.orderDate).toLocaleDateString()} • Order #{order._id.slice(-4)}
                       </Text>
                     </Box>
-                    <Badge colorScheme="green" fontSize="md" py={1} px={3} borderRadius="lg">
+                    <Badge colorScheme="pink" fontSize="md" py={1} px={3} borderRadius="lg">
                       ${order.amount.toFixed(2)}
                     </Badge>
                   </Flex>

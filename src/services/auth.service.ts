@@ -7,11 +7,9 @@ export interface AuthResponse {
 }
 
 const AuthService = {
-    /**
-     * Initialize Google OAuth login
-     */
     initiateGoogleLogin: (): void => {
-        window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/google`;
+        const googleAuthUrl = `${process.env.REACT_APP_API_URL}/api/auth/google`;
+        window.location.href = googleAuthUrl;
     },
 
     /**

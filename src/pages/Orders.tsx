@@ -193,7 +193,7 @@ const Orders: React.FC = () => {
           <Heading size="lg">Orders</Heading>
           <Button 
             leftIcon={<AddIcon />} 
-            colorScheme="teal"
+            colorScheme="pink"
             onClick={handleAddNew}
           >
             New Order
@@ -305,7 +305,7 @@ const Orders: React.FC = () => {
                 <Box mt={4}>
                   <Flex justify="space-between" mb={2}>
                     <Text fontWeight="bold">Products</Text>
-                    <Button size="sm" onClick={addProductRow} colorScheme="teal">
+                    <Button size="sm" onClick={addProductRow} colorScheme="pink">
                       + Add Product
                     </Button>
                   </Flex>
@@ -365,7 +365,7 @@ const Orders: React.FC = () => {
               <Button variant="ghost" mr={3} onClick={onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="teal" type="submit">
+              <Button colorScheme="pink" type="submit">
                 Create Order
               </Button>
             </ModalFooter>

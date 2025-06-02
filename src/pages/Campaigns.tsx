@@ -121,7 +121,7 @@ const Campaigns: React.FC = () => {
       case 'draft':
         return 'blue';
       case 'completed':
-        return 'teal';
+        return 'pink';
       case 'cancelled':
         return 'red';
       default:
@@ -157,7 +157,7 @@ const Campaigns: React.FC = () => {
           <HStack spacing={2}>
             <Button
               onClick={handleCreateCampaign}
-              colorScheme="teal"
+              colorScheme="pink"
             >
               Create Campaign
             </Button>
@@ -173,7 +173,7 @@ const Campaigns: React.FC = () => {
 
         {loading ? (
           <Box textAlign="center" py={8}>
-            <Spinner size="xl" mb={4} color="teal.500" />
+            <Spinner size="xl" mb={4} color="pink.500" />
             <Text>Loading campaigns...</Text>
           </Box>
         ) : (
@@ -208,7 +208,7 @@ const Campaigns: React.FC = () => {
                         <Text
                           as={RouterLink}
                           to={`/campaigns/${campaign._id}`}
-                          color="teal.500"
+                          color="pink.500"
                           fontWeight="medium"
                         >
                           {campaign.name}
@@ -230,7 +230,7 @@ const Campaigns: React.FC = () => {
                           <Progress
                             value={calculateDeliveryProgress(campaign)}
                             size="sm"
-                            colorScheme="teal"
+                            colorScheme="pink"
                           />
                           <Text fontSize="xs" mt={1}>
                             {campaign.deliveryStats.sent + campaign.deliveryStats.failed} of {campaign.audienceSize} sent

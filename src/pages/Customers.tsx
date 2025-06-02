@@ -132,7 +132,7 @@ const Customers: React.FC = () => {
           <Heading size="lg">Customers</Heading>
           <Button 
             leftIcon={<AddIcon />} 
-            colorScheme="teal" 
+            colorScheme="pink" 
             onClick={handleAddNew}
           >
             Add Customer
@@ -246,7 +246,7 @@ const Customers: React.FC = () => {
               <Button variant="ghost" mr={3} onClick={onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="teal" type="submit">
+              <Button colorScheme="pink" type="submit">
                 {isEditing ? 'Update' : 'Create'}
               </Button>
             </ModalFooter>

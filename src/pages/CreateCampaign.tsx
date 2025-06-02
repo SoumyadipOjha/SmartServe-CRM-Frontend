@@ -62,8 +62,8 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
   const cardBg = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const subtleText = useColorModeValue('gray.600', 'gray.400');
-  const highlightBg = useColorModeValue('teal.50', 'teal.900');
-  const highlightBorder = useColorModeValue('teal.200', 'teal.700');
+  const highlightBg = useColorModeValue('pink.50', 'pink.900');
+  const highlightBorder = useColorModeValue('pink.200', 'pink.700');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -383,7 +383,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
             </Button>
             <Button 
               type="submit" 
-              colorScheme="teal"
+              colorScheme="pink"
               isLoading={loading.submit}
               size="lg"
               // leftIcon={<IconWrapper icon={FiSend} />}
@@ -442,10 +442,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                 <Flex justify="flex-end">
                   <Button 
                     onClick={() => setActiveSection('audience')} 
-                    colorScheme="teal"
-                    isDisabled={!formData.name}
+                    colorScheme="pink"
+                    isDisabled={!formData.name || !formData.description}
                   >
-                    Next: Define Audience
+                    Next
                   </Button>
                 </Flex>
               </VStack>
@@ -467,15 +467,15 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
               <VStack spacing={6} align="stretch">
                 <Tabs 
                   variant="line" 
-                  colorScheme="teal"
+                  colorScheme="pink"
                   isFitted
                 >
                   <TabList mb={4}>
                     <Tab 
                       fontWeight="medium" 
                       _selected={{ 
-                        color: 'teal.500', 
-                        borderColor: 'teal.500',
+                        color: 'pink.500', 
+                        borderColor: 'pink.500',
                         bg: highlightBg 
                       }}
                     >
@@ -486,8 +486,8 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     <Tab 
                       fontWeight="medium" 
                       _selected={{ 
-                        color: 'teal.500', 
-                        borderColor: 'teal.500',
+                        color: 'pink.500', 
+                        borderColor: 'pink.500',
                         bg: highlightBg 
                       }}
                     >
@@ -522,7 +522,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                         
                         <Button 
                           onClick={handleConvertToRules} 
-                          colorScheme="teal"
+                          colorScheme="pink"
                           size="lg"
                           isLoading={loading.aiConversion}
                           isDisabled={!segmentDescription}
@@ -548,7 +548,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                                   size="lg" 
                                   borderRadius="full" 
                                   variant="subtle"
-                                  colorScheme="teal"
+                                  colorScheme="pink"
                                 >
                                   <TagLabel>
                                     {rule.field} {rule.operator} {rule.value}
@@ -667,10 +667,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                   
                   <Button 
                     onClick={() => setActiveSection('message')} 
-                    colorScheme="teal"
+                    colorScheme="pink"
                     isDisabled={rules.conditions.length === 0}
                   >
-                    Next: Craft Message
+                    Next
                   </Button>
                 </Flex>
               </VStack>
@@ -714,7 +714,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                 
                 <Button 
                   onClick={handleGenerateMessage} 
-                  colorScheme="teal"
+                  colorScheme="pink"
                   size="lg" 
                   isLoading={loading.aiMessage}
                   w="full"
@@ -764,7 +764,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                   
                   <Button 
                     type="submit" 
-                    colorScheme="teal" 
+                    colorScheme="pink" 
                     size="lg"
                     isLoading={loading.submit}
                     isDisabled={!formData.name || !formData.message || rules.conditions.length === 0}
