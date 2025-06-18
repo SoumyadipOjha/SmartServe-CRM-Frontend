@@ -131,10 +131,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       setError(null);
       const convertedRules = await AIService.convertNaturalLanguageToRules(segmentDescription);
       setRules(convertedRules);
-      
-      // Preview audience after conversion
       previewAudience(convertedRules);
-      
       toast({
         title: 'Segment converted',
         description: 'Natural language segment has been converted to rules',
@@ -144,7 +141,6 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         position: 'top-right'
       });
     } catch (err) {
-      console.error('Error converting natural language:', err);
       setError('Failed to convert natural language to rules. Please try a different description or use the rule builder.');
     } finally {
       setLoading((prev) => ({ ...prev, aiConversion: false }));
@@ -168,31 +164,15 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
     try {
       setLoading((prev) => ({ ...prev, aiMessage: true }));
       setError(null);
-      
-      // Use the campaign name and description to generate a better message
       const goalText = formData.description 
         ? `${formData.name}: ${formData.description}`
         : formData.name;
-      
-      console.log('Generating message for goal:', goalText);
       const generatedMessage = await AIService.generatePromotionalMessage(goalText);
-      console.log('Generated message:', generatedMessage);
-      
       if (!generatedMessage || generatedMessage.trim() === '') {
         throw new Error('Received empty message from AI service');
       }
-      
-      // Set the message directly in the form data state
-      setFormData(prev => {
-        const updated = { ...prev, message: generatedMessage };
-        console.log('Updated form data:', updated);
-        return updated;
-      });
-
-      // Show message preview
+      setFormData(prev => ({ ...prev, message: generatedMessage }));
       setShowMessagePreview(true);
-      
-      // Show success message with the actual generated text
       toast({
         title: 'Message generated',
         description: `AI has created a personalized message for your campaign`,
@@ -202,10 +182,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         position: 'top-right'
       });
     } catch (err) {
-      console.error('Error generating message:', err);
       setError('Failed to generate message. Please try writing your own message.');
-      
-      // Show error with more details
       toast({
         title: 'Message generation failed',
         description: 'Could not generate message. Please try again or write your own message.',
@@ -225,13 +202,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       setAudienceCount(null);
       return;
     }
-
     try {
       setLoading((prev) => ({ ...prev, preview: true }));
       const count = await CampaignService.previewAudience(rulesData);
       setAudienceCount(count);
-      
-      // Show feedback when audience is found
       if (count > 0) {
         toast({
           title: 'Audience preview',
@@ -243,7 +217,6 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         });
       }
     } catch (err) {
-      console.error('Error previewing audience:', err);
       toast({
         title: 'Preview failed',
         description: 'Unable to preview audience size',
@@ -267,21 +240,16 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         value: rule.value
       }))
     };
-    
     setRules(formattedRules);
-    
-    // Preview audience after a short delay for better UX
     const handler = setTimeout(() => {
       previewAudience(formattedRules);
     }, 500);
-    
     return () => clearTimeout(handler);
   };
 
   // Create the campaign
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.name) {
       toast({
         title: 'Campaign name required',
@@ -293,7 +261,6 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       });
       return;
     }
-    
     if (rules.conditions.length === 0) {
       toast({
         title: 'Segment rules required',
@@ -305,7 +272,6 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       });
       return;
     }
-    
     if (!formData.message) {
       toast({
         title: 'Message required',
@@ -317,16 +283,13 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       });
       return;
     }
-    
     try {
       setLoading((prev) => ({ ...prev, submit: true }));
       setError(null);
-      
       const campaign = await CampaignService.createCampaign({
         ...formData,
         rules
       });
-      
       toast({
         title: 'Campaign created',
         description: 'Your campaign has been created successfully',
@@ -335,16 +298,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         isClosable: true,
         position: 'top-right'
       });
-      
       navigate(`/campaigns/${campaign._id}`);
     } catch (err: any) {
-      console.error('Error creating campaign:', err);
-      
-      // Extract detailed validation errors if available
       let errorMessage = 'Failed to create campaign';
-      
       if (err.response?.data?.errors) {
-        // Format validation errors from express-validator
         const validationErrors = err.response.data.errors.map((e: any) => e.msg).join(', ');
         errorMessage = `Validation failed: ${validationErrors}`;
       } else if (err.response?.data?.message) {
@@ -354,9 +311,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
       setError(`${errorMessage}. Please check your input and try again.`);
-      
       toast({
         title: 'Campaign creation failed',
         description: errorMessage,
@@ -395,41 +350,43 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
 
   return (
     <Layout>
-      <Box as="form" onSubmit={handleSubmit}>
-        <Flex 
-          justify="space-between" 
-          align="center" 
+      <Box as="form" onSubmit={handleSubmit} p={[2, 4, 8]} maxW="100vw">
+        <Flex
+          direction={['column', 'row']}
+          justify="space-between"
+          align={['stretch', 'center']}
           mb={8}
           pb={4}
           borderBottom="1px"
           borderColor={borderColor}
+          gap={4}
         >
-          <Box>
-            <Heading size="lg">Create New Campaign</Heading>
-            <Text color={subtleText} mt={1}>
+          <Box mb={[4, 0]}>
+            <Heading size={['md', 'lg']}>Create New Campaign</Heading>
+            <Text color={subtleText} mt={1} fontSize={['sm', 'md']}>
               Define your audience, craft your message, and launch your campaign
             </Text>
           </Box>
-          
-          <HStack>
+          <VStack direction={['column', 'row']} spacing={2} w={['100%', 'auto']}>
             <Button
               onClick={handleGoBack}
               variant="outline"
-              mr={2}
+              width={['100%', 'auto']}
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               colorScheme="teal"
               isLoading={loading.submit}
               size="lg"
               leftIcon={<IconWrapper icon={FiSend} />}
               boxShadow="md"
+              width={['100%', 'auto']}
             >
               Create Campaign
             </Button>
-          </HStack>
+          </VStack>
         </Flex>
 
         {error && (
@@ -440,119 +397,121 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         )}
 
         {/* Campaign Creation Progress */}
-        <Flex 
-          mb={10} 
-          justify="space-between" 
-          align="center"
-          borderRadius="lg" 
-          bg={cardBg}
-          p={4}
-          shadow="sm"
-        >
-          <HStack spacing={8}>
-            <VStack 
-              align="center" 
-              cursor="pointer"
-              onClick={() => setActiveSection('details')}
-              bg={activeSection === 'details' ? highlightBg : 'transparent'}
-              p={3}
-              borderRadius="md"
-              borderWidth={activeSection === 'details' ? '1px' : '0'}
-              borderColor={highlightBorder}
-              transition="all 0.2s"
-              spacing={2}
-            >
-              <Flex 
-                w={10} 
-                h={10} 
-                bg={isSectionComplete('details') ? 'teal.500' : 'gray.200'} 
-                color="white"
-                borderRadius="full"
-                justify="center"
+        <Box overflowX="auto" mb={10}>
+          <Flex
+            direction={['column', 'row']}
+            justify="space-between"
+            align={['stretch', 'center']}
+            borderRadius="lg"
+            bg={cardBg}
+            p={4}
+            shadow="sm"
+            minW={['350px', 'auto']}
+            gap={4}
+          >
+            <HStack spacing={[2, 8]} overflowX="auto" w="100%">
+              <VStack
                 align="center"
+                cursor="pointer"
+                onClick={() => setActiveSection('details')}
+                bg={activeSection === 'details' ? highlightBg : 'transparent'}
+                p={3}
+                borderRadius="md"
+                borderWidth={activeSection === 'details' ? '1px' : '0'}
+                borderColor={highlightBorder}
+                transition="all 0.2s"
+                spacing={2}
+                minW="110px"
               >
-                <IconWrapper icon={isSectionComplete('details') ? FiCheckCircle : FiBriefcase} boxSize={5} />
-              </Flex>
-              <Text fontWeight="medium">Campaign Details</Text>
-            </VStack>
-            
-            <IconWrapper icon={FiTarget} boxSize={6} color="gray.300" />
-            
-            <VStack 
-              align="center"
-              cursor="pointer"
-              onClick={() => setActiveSection('audience')}
-              bg={activeSection === 'audience' ? highlightBg : 'transparent'}
-              p={3}
-              borderRadius="md"
-              borderWidth={activeSection === 'audience' ? '1px' : '0'}
-              borderColor={highlightBorder}
-              transition="all 0.2s"
-              spacing={2}
-            >
-              <Flex 
-                w={10} 
-                h={10} 
-                bg={isSectionComplete('audience') ? 'teal.500' : 'gray.200'} 
-                color="white"
-                borderRadius="full"
-                justify="center"
+                <Flex
+                  w={10}
+                  h={10}
+                  bg={isSectionComplete('details') ? 'teal.500' : 'gray.200'}
+                  color="white"
+                  borderRadius="full"
+                  justify="center"
+                  align="center"
+                >
+                  <IconWrapper icon={isSectionComplete('details') ? FiCheckCircle : FiBriefcase} boxSize={5} />
+                </Flex>
+                <Text fontWeight="medium" fontSize={['xs', 'md']}>Campaign Details</Text>
+              </VStack>
+              <IconWrapper icon={FiTarget} boxSize={6} color="gray.300" display={['none', 'block']} />
+              <VStack
                 align="center"
+                cursor="pointer"
+                onClick={() => setActiveSection('audience')}
+                bg={activeSection === 'audience' ? highlightBg : 'transparent'}
+                p={3}
+                borderRadius="md"
+                borderWidth={activeSection === 'audience' ? '1px' : '0'}
+                borderColor={highlightBorder}
+                transition="all 0.2s"
+                spacing={2}
+                minW="110px"
               >
-                <IconWrapper icon={isSectionComplete('audience') ? FiCheckCircle : FiUsers} boxSize={5} />
-              </Flex>
-              <Text fontWeight="medium">Define Audience</Text>
-            </VStack>
-            
-            <IconWrapper icon={FiMessageSquare} boxSize={6} color="gray.300" />
-            
-            <VStack 
-              align="center"
-              cursor="pointer"
-              onClick={() => setActiveSection('message')}
-              bg={activeSection === 'message' ? highlightBg : 'transparent'}
-              p={3}
-              borderRadius="md"
-              borderWidth={activeSection === 'message' ? '1px' : '0'}
-              borderColor={highlightBorder}
-              transition="all 0.2s"
-              spacing={2}
-            >
-              <Flex 
-                w={10} 
-                h={10} 
-                bg={isSectionComplete('message') ? 'teal.500' : 'gray.200'} 
-                color="white"
-                borderRadius="full"
-                justify="center"
+                <Flex
+                  w={10}
+                  h={10}
+                  bg={isSectionComplete('audience') ? 'teal.500' : 'gray.200'}
+                  color="white"
+                  borderRadius="full"
+                  justify="center"
+                  align="center"
+                >
+                  <IconWrapper icon={isSectionComplete('audience') ? FiCheckCircle : FiUsers} boxSize={5} />
+                </Flex>
+                <Text fontWeight="medium" fontSize={['xs', 'md']}>Define Audience</Text>
+              </VStack>
+              <IconWrapper icon={FiMessageSquare} boxSize={6} color="gray.300" display={['none', 'block']} />
+              <VStack
                 align="center"
+                cursor="pointer"
+                onClick={() => setActiveSection('message')}
+                bg={activeSection === 'message' ? highlightBg : 'transparent'}
+                p={3}
+                borderRadius="md"
+                borderWidth={activeSection === 'message' ? '1px' : '0'}
+                borderColor={highlightBorder}
+                transition="all 0.2s"
+                spacing={2}
+                minW="110px"
               >
-                <IconWrapper icon={isSectionComplete('message') ? FiCheckCircle : FiMessageSquare} boxSize={5} />
-              </Flex>
-              <Text fontWeight="medium">Craft Message</Text>
-            </VStack>
-          </HStack>
-          
-          <Box>
-            <Progress 
-              value={(
-                (isSectionComplete('details') ? 1 : 0) + 
-                (isSectionComplete('audience') ? 1 : 0) + 
-                (isSectionComplete('message') ? 1 : 0)
-              ) * 33.33} 
-              size="sm" 
-              colorScheme="teal" 
-              width="200px"
-              borderRadius="full"
-            />
-          </Box>
-        </Flex>
+                <Flex
+                  w={10}
+                  h={10}
+                  bg={isSectionComplete('message') ? 'teal.500' : 'gray.200'}
+                  color="white"
+                  borderRadius="full"
+                  justify="center"
+                  align="center"
+                >
+                  <IconWrapper icon={isSectionComplete('message') ? FiCheckCircle : FiMessageSquare} boxSize={5} />
+                </Flex>
+                <Text fontWeight="medium" fontSize={['xs', 'md']}>Craft Message</Text>
+              </VStack>
+            </HStack>
+            <Box mt={[4, 0]}>
+              <Progress
+                value={(
+                  (isSectionComplete('details') ? 1 : 0) +
+                  (isSectionComplete('audience') ? 1 : 0) +
+                  (isSectionComplete('message') ? 1 : 0)
+                ) * 33.33}
+                size="sm"
+                colorScheme="teal"
+                width={['100%', '200px']}
+                borderRadius="full"
+              />
+            </Box>
+          </Flex>
+        </Box>
 
         {/* 1. Campaign Details Section */}
         <Collapse in={activeSection === 'details'} animateOpacity>
           <Card mb={8} variant="outline" bg={cardBg} shadow="sm">
             <CardHeader pb={0}>
-              <Heading size="md">
+              <Heading size={['sm', 'md']}>
                 <Flex align="center">
                   <IconWrapper icon={FiBriefcase} mr={2} />
                   Campaign Details
@@ -562,8 +521,8 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
             <CardBody>
               <VStack spacing={6} align="stretch">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="medium">Campaign Name</FormLabel>
-                  <Input 
+                  <FormLabel fontWeight="medium" fontSize={['sm', 'md']}>Campaign Name</FormLabel>
+                  <Input
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
@@ -571,11 +530,11 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     bg="white"
                     borderColor={borderColor}
                     size="lg"
+                    fontSize={['sm', 'md']}
                   />
                 </FormControl>
-                
                 <FormControl>
-                  <FormLabel fontWeight="medium">Description</FormLabel>
+                  <FormLabel fontWeight="medium" fontSize={['sm', 'md']}>Description</FormLabel>
                   <Textarea
                     name="description"
                     value={formData.description}
@@ -584,15 +543,16 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     rows={3}
                     bg="white"
                     borderColor={borderColor}
+                    fontSize={['sm', 'md']}
                   />
                 </FormControl>
-                
-                <Flex justify="flex-end">
-                  <Button 
-                    onClick={() => setActiveSection('audience')} 
+                <Flex justify={['center', 'flex-end']}>
+                  <Button
+                    onClick={() => setActiveSection('audience')}
                     colorScheme="teal"
                     rightIcon={<IconWrapper icon={FiUsers} />}
                     isDisabled={!formData.name}
+                    width={['100%', 'auto']}
                   >
                     Next: Define Audience
                   </Button>
@@ -606,7 +566,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         <Collapse in={activeSection === 'audience'} animateOpacity>
           <Card mb={8} variant="outline" bg={cardBg} shadow="sm">
             <CardHeader pb={0}>
-              <Heading size="md">
+              <Heading size={['sm', 'md']}>
                 <Flex align="center">
                   <IconWrapper icon={FiUsers} mr={2} />
                   Define Your Audience
@@ -615,18 +575,20 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
             </CardHeader>
             <CardBody>
               <VStack spacing={6} align="stretch">
-                <Tabs 
-                  variant="line" 
+                <Tabs
+                  variant="line"
                   colorScheme="teal"
                   isFitted
+                  size={['sm', 'md']}
                 >
                   <TabList mb={4}>
-                    <Tab 
-                      fontWeight="medium" 
-                      _selected={{ 
-                        color: 'teal.500', 
+                    <Tab
+                      fontWeight="medium"
+                      fontSize={['sm', 'md']}
+                      _selected={{
+                        color: 'teal.500',
                         borderColor: 'teal.500',
-                        bg: highlightBg 
+                        bg: highlightBg
                       }}
                     >
                       <Flex align="center">
@@ -634,12 +596,13 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                         Natural Language
                       </Flex>
                     </Tab>
-                    <Tab 
-                      fontWeight="medium" 
-                      _selected={{ 
-                        color: 'teal.500', 
+                    <Tab
+                      fontWeight="medium"
+                      fontSize={['sm', 'md']}
+                      _selected={{
+                        color: 'teal.500',
                         borderColor: 'teal.500',
-                        bg: highlightBg 
+                        bg: highlightBg
                       }}
                     >
                       <Flex align="center">
@@ -648,13 +611,12 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                       </Flex>
                     </Tab>
                   </TabList>
-                  
                   <TabPanels>
                     {/* Natural Language Tab */}
                     <TabPanel px={0}>
                       <VStack spacing={4} align="stretch">
                         <FormControl>
-                          <FormLabel fontWeight="medium">Describe your target audience</FormLabel>
+                          <FormLabel fontWeight="medium" fontSize={['sm', 'md']}>Describe your target audience</FormLabel>
                           <Textarea
                             value={segmentDescription}
                             onChange={(e) => setSegmentDescription(e.target.value)}
@@ -665,15 +627,14 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                             borderRadius="md"
                             p={4}
                             boxShadow="sm"
-                            fontSize="md"
+                            fontSize={['sm', 'md']}
                           />
                           <FormHelperText>
                             Use natural language to describe the customers you want to target
                           </FormHelperText>
                         </FormControl>
-                        
-                        <Button 
-                          onClick={handleConvertToRules} 
+                        <Button
+                          onClick={handleConvertToRules}
                           colorScheme="teal"
                           size="lg"
                           isLoading={loading.aiConversion}
@@ -684,11 +645,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                         >
                           Convert to Rules with AI
                         </Button>
-
                         {rules.conditions.length > 0 && (
-                          <Box 
-                            p={4} 
-                            bg={highlightBg} 
+                          <Box
+                            p={4}
+                            bg={highlightBg}
                             borderRadius="md"
                             borderWidth="1px"
                             borderColor={highlightBorder}
@@ -696,10 +656,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                             <Text fontWeight="medium" mb={2}>AI converted your description into:</Text>
                             <VStack align="stretch" spacing={2}>
                               {rules.conditions.map((rule, idx) => (
-                                <Tag 
-                                  key={idx} 
-                                  size="lg" 
-                                  borderRadius="full" 
+                                <Tag
+                                  key={idx}
+                                  size="lg"
+                                  borderRadius="full"
                                   variant="subtle"
                                   colorScheme="teal"
                                 >
@@ -716,16 +676,16 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                         )}
                       </VStack>
                     </TabPanel>
-                    
                     {/* Rule Builder Tab */}
                     <TabPanel px={0}>
-                      <Box 
-                        border="1px" 
-                        borderColor={borderColor} 
-                        borderRadius="md" 
+                      <Box
+                        border="1px"
+                        borderColor={borderColor}
+                        borderRadius="md"
                         p={4}
                         bg="white"
                         boxShadow="sm"
+                        overflowX="auto"
                       >
                         <QueryBuilder
                           fields={fields}
@@ -743,49 +703,47 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     </TabPanel>
                   </TabPanels>
                 </Tabs>
-                
                 {/* Audience Preview */}
-                <Box 
-                  mt={6} 
-                  p={5} 
-                  bg={cardBg} 
+                <Box
+                  mt={6}
+                  p={5}
+                  bg={cardBg}
                   borderRadius="lg"
                   borderWidth="1px"
                   borderColor={borderColor}
                   position="relative"
                   overflow="hidden"
                 >
-                  <Flex justify="space-between" alignItems="center">
-                    <HStack spacing={4}>
-                      <Flex 
-                        w={12} 
-                        h={12} 
-                        bg="blue.50" 
-                        color="blue.500" 
-                        borderRadius="full" 
+                  <Flex direction={['column', 'row']} justify="space-between" align={['stretch', 'center']}>
+                    <HStack spacing={4} mb={[4, 0]}>
+                      <Flex
+                        w={12}
+                        h={12}
+                        bg="blue.50"
+                        color="blue.500"
+                        borderRadius="full"
                         justify="center"
                         align="center"
                       >
                         <IconWrapper icon={FiUsers} boxSize={6} />
                       </Flex>
                       <Box>
-                        <Text fontWeight="bold" fontSize="xl">
+                        <Text fontWeight="bold" fontSize={['lg', 'xl']}>
                           {loading.preview ? (
                             <Skeleton height="30px" width="80px" />
                           ) : audienceCount !== null ? (
-                            <>{audienceCount} <Text as="span" fontSize="md" fontWeight="normal" color={subtleText}>customers</Text></>
+                            <>{audienceCount} <Text as="span" fontSize={['sm', 'md']} fontWeight="normal" color={subtleText}>customers</Text></>
                           ) : (
                             'No audience'
                           )}
                         </Text>
-                        <Text fontSize="sm" color={subtleText}>
-                          {rules.conditions.length > 0 
-                            ? `Based on ${rules.conditions.length} condition${rules.conditions.length !== 1 ? 's' : ''} with ${rules.condition} logic` 
+                        <Text fontSize={['xs', 'sm']} color={subtleText}>
+                          {rules.conditions.length > 0
+                            ? `Based on ${rules.conditions.length} condition${rules.conditions.length !== 1 ? 's' : ''} with ${rules.condition} logic`
                             : 'Define audience conditions above'}
                         </Text>
                       </Box>
                     </HStack>
-                    
                     <HStack>
                       <Tooltip label="Refresh audience count" placement="top">
                         <Button
@@ -801,7 +759,6 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                       </Tooltip>
                     </HStack>
                   </Flex>
-                  
                   {audienceCount === 0 && rules.conditions.length > 0 && (
                     <Alert status="warning" mt={4} borderRadius="md">
                       <AlertIcon />
@@ -811,20 +768,20 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     </Alert>
                   )}
                 </Box>
-                
-                <Flex justify="space-between">
-                  <Button 
-                    onClick={() => setActiveSection('details')} 
+                <Flex justify="space-between" direction={['column', 'row']} gap={2}>
+                  <Button
+                    onClick={() => setActiveSection('details')}
                     variant="outline"
+                    width={['100%', 'auto']}
                   >
                     Back to Details
                   </Button>
-                  
-                  <Button 
-                    onClick={() => setActiveSection('message')} 
+                  <Button
+                    onClick={() => setActiveSection('message')}
                     colorScheme="teal"
                     rightIcon={<IconWrapper icon={FiMessageSquare} />}
                     isDisabled={rules.conditions.length === 0}
+                    width={['100%', 'auto']}
                   >
                     Next: Craft Message
                   </Button>
@@ -838,7 +795,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         <Collapse in={activeSection === 'message'} animateOpacity>
           <Card mb={8} variant="outline" bg={cardBg} shadow="sm">
             <CardHeader pb={0}>
-              <Heading size="md">
+              <Heading size={['sm', 'md']}>
                 <Flex align="center">
                   <IconWrapper icon={FiMessageSquare} mr={2} />
                   Craft Your Message
@@ -848,7 +805,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
             <CardBody>
               <VStack spacing={6} align="stretch">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="medium">Message Content</FormLabel>
+                  <FormLabel fontWeight="medium" fontSize={['sm', 'md']}>Message Content</FormLabel>
                   <InputGroup>
                     <Textarea
                       name="message"
@@ -859,7 +816,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                       maxLength={5000}
                       bg="white"
                       borderColor={borderColor}
-                      fontSize="md"
+                      fontSize={['sm', 'md']}
                       p={4}
                     />
                     <InputRightElement top="8px" right="8px">
@@ -877,23 +834,21 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     )}
                   </FormHelperText>
                 </FormControl>
-                
-                <Button 
-                  onClick={handleGenerateMessage} 
+                <Button
+                  onClick={handleGenerateMessage}
                   colorScheme="teal"
-                  size="lg" 
+                  size="lg"
                   isLoading={loading.aiMessage}
                   leftIcon={<IconWrapper icon={FiWind} />}
                   w="full"
                 >
                   Generate Personalized Message with AI
                 </Button>
-                
                 {/* Message preview */}
                 <Collapse in={showMessagePreview || (!!formData.message && formData.message.length > 20)} animateOpacity>
-                  <Box 
-                    p={6} 
-                    bg={highlightBg} 
+                  <Box
+                    p={6}
+                    bg={highlightBg}
                     borderRadius="lg"
                     borderWidth="1px"
                     borderColor={highlightBorder}
@@ -903,39 +858,39 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                       <Heading size="sm">Message Preview</Heading>
                       <Badge colorScheme="blue">Personalized</Badge>
                     </Flex>
-                    <Box 
-                      p={5} 
-                      bg="white" 
-                      borderRadius="md" 
+                    <Box
+                      p={5}
+                      bg="white"
+                      borderRadius="md"
                       borderWidth="1px"
                       borderColor={borderColor}
                       boxShadow="sm"
                     >
-                      <Text whiteSpace="pre-wrap" fontSize="md">
+                      <Text whiteSpace="pre-wrap" fontSize={['sm', 'md']}>
                         {formData.message.replace('{{name}}', 'John')}
                       </Text>
                     </Box>
-                    <Text fontSize="xs" mt={3} color={subtleText}>
+                    <Text fontSize={['xs', 'sm']} mt={3} color={subtleText}>
                       This shows how your message will look with a sample customer name.
                     </Text>
                   </Box>
                 </Collapse>
-                
-                <Flex justify="space-between" mt={4}>
-                  <Button 
-                    onClick={() => setActiveSection('audience')} 
+                <Flex justify="space-between" direction={['column', 'row']} gap={2} mt={4}>
+                  <Button
+                    onClick={() => setActiveSection('audience')}
                     variant="outline"
+                    width={['100%', 'auto']}
                   >
                     Back to Audience
                   </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    colorScheme="teal" 
+                  <Button
+                    type="submit"
+                    colorScheme="teal"
                     size="lg"
                     isLoading={loading.submit}
                     isDisabled={!formData.name || !formData.message || rules.conditions.length === 0}
                     leftIcon={<IconWrapper icon={FiSend} />}
+                    width={['100%', 'auto']}
                   >
                     Create Campaign
                   </Button>

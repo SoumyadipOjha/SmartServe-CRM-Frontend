@@ -17,7 +17,9 @@ import {
   AlertDescription,
   Progress,
   HStack,
-  Spinner
+  Spinner,
+  Stack,
+  useBreakpointValue
 } from '@chakra-ui/react';
 import * as XLSX from 'xlsx';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
@@ -237,55 +239,59 @@ const Campaigns: React.FC = () => {
     fetchCampaigns(false);
   };
 
+  const handleExportCampaigns = () => {
+    const headers = [
+      'Campaign Name',
+      'Status',
+      'Audience Size',
+      'Sent',
+      'Failed',
+      'Success Rate',
+      'Created Date'
+    ];
+
+    const rows = campaigns.map(c => {
+      const totalSent = c.deliveryStats.sent;
+      const totalFailed = c.deliveryStats.failed;
+      const totalProcessed = totalSent + totalFailed;
+      const successRate =
+        totalProcessed > 0
+          ? `${Math.round((totalSent / totalProcessed) * 100)}%`
+          : '0%';
+
+      return [
+        c.name,
+        c.status,
+        c.audienceSize,
+        totalSent,
+        totalFailed,
+        successRate,
+        new Date(c.createdAt).toLocaleDateString()
+      ];
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Campaigns');
+    XLSX.writeFile(workbook, `campaigns-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   if (showCreateForm) {
     return <CreateCampaign onCancel={() => setShowCreateForm(false)} />;
   }
 
-
-const handleExportCampaigns = () => {
-  const headers = [
-    'Campaign Name',
-    'Status',
-    'Audience Size',
-    'Sent',
-    'Failed',
-    'Success Rate',
-    'Created Date'
-  ];
-
-  const rows = campaigns.map(c => {
-    const totalSent = c.deliveryStats.sent;
-    const totalFailed = c.deliveryStats.failed;
-    const totalProcessed = totalSent + totalFailed;
-    const successRate =
-      totalProcessed > 0
-        ? `${Math.round((totalSent / totalProcessed) * 100)}%`
-        : '0%';
-
-    return [
-      c.name,
-      c.status,
-      c.audienceSize,
-      totalSent,
-      totalFailed,
-      successRate,
-      new Date(c.createdAt).toLocaleDateString()
-    ];
-  });
-
-  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Campaigns');
-  XLSX.writeFile(workbook, `campaigns-${new Date().toISOString().split('T')[0]}.xlsx`);
-};
-
-
   return (
     <Layout>
-      <Box>
-        <Flex justify="space-between" align="center" mb={6}>
+      <Box px={{ base: 2, md: 4 }}>
+        <Stack
+          direction={{ base: 'column', md: 'row' }}
+          justify="space-between"
+          align={{ base: 'flex-start', md: 'center' }}
+          spacing={4}
+          mb={6}
+        >
           <Heading size="lg">Marketing Campaigns</Heading>
-          <HStack spacing={2}>
+          <HStack spacing={2} flexWrap="wrap">
             <Button
               onClick={handleRefresh}
               leftIcon={<RepeatIcon />}
@@ -296,26 +302,18 @@ const handleExportCampaigns = () => {
             >
               Refresh
             </Button>
-            <HStack spacing={2}>
-
-  <Button
-    onClick={handleExportCampaigns}
-    colorScheme="blue"
-  >
-    Export Campaigns
-  </Button>
-
-  <Button
-    onClick={handleCreateCampaign}
-    leftIcon={<AddIcon />}
-    colorScheme="teal"
-  >
-    Create Campaign
-  </Button>
-</HStack>
-
+            <Button onClick={handleExportCampaigns} colorScheme="blue">
+              Export Campaigns
+            </Button>
+            <Button
+              onClick={handleCreateCampaign}
+              leftIcon={<AddIcon />}
+              colorScheme="teal"
+            >
+              Create Campaign
+            </Button>
           </HStack>
-        </Flex>
+        </Stack>
 
         {error && (
           <Alert status="error" mb={4}>
@@ -338,7 +336,7 @@ const handleExportCampaigns = () => {
                 </Text>
               </Box>
             )}
-            <Table variant="simple">
+            <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
               <Thead>
                 <Tr>
                   <Th>Campaign Name</Th>

@@ -31,7 +31,6 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
-import { FiUpload } from 'react-icons/fi';
 import Layout from '../components/Layout';
 import CustomerService from '../services/customer.service';
 import { Customer } from '../types/models';
@@ -147,20 +146,27 @@ const Customers: React.FC = () => {
 
   return (
     <Layout>
-      <Box p={4}>
-        <Flex justify="space-between" align="center" mb={6}>
-          <Heading size="lg">Customers</Heading>
-          <HStack spacing={4}>
+      <Box p={[2, 4, 6]}>
+        <Flex
+          direction={['column', 'row']}
+          justify="space-between"
+          align={['stretch', 'center']}
+          mb={6}
+          gap={4}
+        >
+          <Heading size={['md', 'lg']}>Customers</Heading>
+          <Stack direction={['column', 'row']} spacing={2}>
             <ExportButton customers={customers || []} />
             <BulkUploadButton onUploadSuccess={handleUploadSuccess} />
             <Button 
               leftIcon={<AddIcon />} 
               colorScheme="teal" 
               onClick={handleAddNew}
+              width={['100%', 'auto']}
             >
               Add Customer
             </Button>
-          </HStack>
+          </Stack>
         </Flex>
 
         {error && (
@@ -174,15 +180,15 @@ const Customers: React.FC = () => {
           <Text>Loading customers...</Text>
         ) : (
           <Box overflowX="auto">
-            <Table variant="simple">
+            <Table size="sm" variant="simple">
               <Thead>
                 <Tr>
                   <Th>Name</Th>
                   <Th>Email</Th>
-                  <Th>Phone</Th>
-                  <Th>Total Spend</Th>
-                  <Th>Visits</Th>
-                  <Th>Last Activity</Th>
+                  <Th display={['none', 'table-cell']}>Phone</Th>
+                  <Th display={['none', 'table-cell']}>Total Spend</Th>
+                  <Th display={['none', 'table-cell']}>Visits</Th>
+                  <Th display={['none', 'table-cell']}>Last Activity</Th>
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
@@ -196,10 +202,10 @@ const Customers: React.FC = () => {
                     <Tr key={customer._id}>
                       <Td>{customer.name}</Td>
                       <Td>{customer.email}</Td>
-                      <Td>{customer.phone || '-'}</Td>
-                      <Td>${customer.totalSpend.toFixed(2)}</Td>
-                      <Td>{customer.visits}</Td>
-                      <Td>{new Date(customer.lastActivity).toLocaleDateString()}</Td>
+                      <Td display={['none', 'table-cell']}>{customer.phone || '-'}</Td>
+                      <Td display={['none', 'table-cell']}>${customer.totalSpend.toFixed(2)}</Td>
+                      <Td display={['none', 'table-cell']}>{customer.visits}</Td>
+                      <Td display={['none', 'table-cell']}>{new Date(customer.lastActivity).toLocaleDateString()}</Td>
                       <Td>
                         <IconButton
                           aria-label="Edit customer"
@@ -226,7 +232,7 @@ const Customers: React.FC = () => {
       </Box>
 
       {/* Add/Edit Customer Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} size={['xs', 'md']}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
