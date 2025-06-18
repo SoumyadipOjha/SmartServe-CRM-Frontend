@@ -39,6 +39,8 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { FiDownload } from 'react-icons/fi';
+import * as XLSX from 'xlsx';
 import Layout from '../components/Layout';
 import OrderService from '../services/order.service';
 import CustomerService from '../services/customer.service';
@@ -186,19 +188,53 @@ const Orders: React.FC = () => {
     }
   };
 
+  const handleExcelExport = () => {
+  const headers = [
+    'Order ID',
+    'Customer Name',
+    'Amount',
+    'Date',
+    'Status'
+  ];
+
+  const rows = orders.map(order => [
+    order._id,
+    typeof order.customer === 'object' ? order.customer.name : 'Unknown Customer',
+    `$${order.amount.toFixed(2)}`,
+    new Date(order.orderDate).toLocaleDateString(),
+    order.status
+  ]);
+
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+  XLSX.writeFile(workbook, `orders-${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
   return (
     <Layout>
       <Box>
         <Flex justify="space-between" align="center" mb={6}>
-          <Heading size="lg">Orders</Heading>
-          <Button 
-            leftIcon={<AddIcon />} 
-            colorScheme="pink"
-            onClick={handleAddNew}
-          >
-            New Order
-          </Button>
-        </Flex>
+  <Heading size="lg">Orders</Heading>
+
+  <HStack spacing={3}>
+    <Button
+      leftIcon={<FiDownload />}
+      colorScheme="green"
+      onClick={handleExcelExport}
+    >
+      Export Orders
+    </Button>
+    <Button 
+      leftIcon={<AddIcon />} 
+      colorScheme="teal"
+      onClick={handleAddNew}
+    >
+      New Order
+    </Button>
+  </HStack>
+</Flex>
+
 
         {error && (
           <Alert status="error" mb={4}>
@@ -228,7 +264,7 @@ const Orders: React.FC = () => {
                     <Td colSpan={6}>No orders found</Td>
                   </Tr>
                 ) : (
-                  orders.map((order) => (
+                  orders.map(order => (
                     <Tr key={order._id}>
                       <Td>{order._id.substring(0, 8)}...</Td>
                       <Td>
@@ -305,7 +341,7 @@ const Orders: React.FC = () => {
                 <Box mt={4}>
                   <Flex justify="space-between" mb={2}>
                     <Text fontWeight="bold">Products</Text>
-                    <Button size="sm" onClick={addProductRow} colorScheme="pink">
+                    <Button size="sm" onClick={addProductRow} colorScheme="teal">
                       + Add Product
                     </Button>
                   </Flex>
@@ -365,13 +401,15 @@ const Orders: React.FC = () => {
               <Button variant="ghost" mr={3} onClick={onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="pink" type="submit">
+              <Button colorScheme="teal" type="submit">
                 Create Order
               </Button>
             </ModalFooter>
           </form>
         </ModalContent>
       </Modal>
+
+      
     </Layout>
   );
 };

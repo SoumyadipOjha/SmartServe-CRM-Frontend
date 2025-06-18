@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiPlus, FiGithub, FiLinkedin, FiInstagram } from 'react-icons/fi';
+import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiPlus } from 'react-icons/fi';
 
 const Navigation: React.FC = () => {
   const { currentUser, logout } = useAuth();
@@ -36,8 +36,8 @@ const Navigation: React.FC = () => {
 
   // Colors
   const sidebarBg = useColorModeValue('white', 'gray.800');
-  const activeBg = useColorModeValue('pink.50', 'pink.900');
-  const activeColor = useColorModeValue('pink.600', 'pink.200');
+  const activeBg = useColorModeValue('teal.50', 'teal.900');
+  const activeColor = useColorModeValue('teal.600', 'teal.200');
   const hoverBg = useColorModeValue('gray.100', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const topNavBg = useColorModeValue('white', 'gray.800');
@@ -72,7 +72,7 @@ const Navigation: React.FC = () => {
         variant="ghost"
         onClick={onOpen}
       />
-      <Text fontSize="lg" fontWeight="bold" color={activeColor}>SmartServe</Text>
+      <Text fontSize="lg" fontWeight="bold" color={activeColor}>Mini CRM</Text>
       {currentUser && (
         <Menu>
           <MenuButton as={Button} rounded="full" variant="link" cursor="pointer">
@@ -108,7 +108,7 @@ const Navigation: React.FC = () => {
     >
       <Flex px="4" py="5" align="center">
         <Text fontSize="2xl" fontWeight="bold" color={activeColor}>
-          SmartServe
+          Mini CRM
         </Text>
       </Flex>
       <Flex
@@ -152,11 +152,11 @@ const Navigation: React.FC = () => {
           borderRadius="lg"
           role="group"
           cursor="pointer"
-          bg={isActive('/campaigns/create') ? activeBg : 'pink.500'}
+          bg={isActive('/campaigns/create') ? activeBg : 'teal.500'}
           color={isActive('/campaigns/create') ? activeColor : 'white'}
           fontWeight="semibold"
           _hover={{
-            bg: 'pink.600',
+            bg: 'teal.600',
             color: 'white',
           }}
           mt="6"
@@ -178,8 +178,6 @@ const Navigation: React.FC = () => {
           borderTop="1px"
           borderColor={borderColor}
           pt="4"
-          direction="column"
-          gap="4"
         >
           <Menu>
             <MenuButton as={Button} variant="ghost" size="sm" width="100%">
@@ -195,46 +193,6 @@ const Navigation: React.FC = () => {
               <MenuItem onClick={logout}>Logout</MenuItem>
             </MenuList>
           </Menu>
-          
-          <Text fontSize="md" color="gray.500" textAlign="center">
-            Made with 🩷 by soumya
-          </Text>
-
-          <HStack spacing="4" justify="center">
-            <IconButton
-              aria-label="GitHub"
-              icon={<FiGithub />}
-              size="lg"
-              variant="ghost"
-              color="black.500"
-              _hover={{ bg: 'pink.50' }}
-              as="a"
-              href="https://github.com/SoumyadipOjha"
-              target="_blank"
-            />
-            <IconButton
-              aria-label="LinkedIn"
-              icon={<FiLinkedin />}
-              size="lg"
-              variant="ghost"
-              color="black.500"
-              _hover={{ bg: 'pink.50' }}
-              as="a"
-              href="https://linkedin.com/in/soumyadip-ojha"
-              target="_blank"
-            />
-            <IconButton
-              aria-label="Instagram"
-              icon={<FiInstagram />}
-              size="lg"
-              variant="ghost"
-              color="black.500"
-              _hover={{ bg: 'pink.50' }}
-              as="a"
-              href="https://instagram.com/soumyaojhaaa"
-              target="_blank"
-            />
-          </HStack>
         </Flex>
       )}
     </Box>
@@ -248,7 +206,7 @@ const Navigation: React.FC = () => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader borderBottomWidth="1px">SmartServe</DrawerHeader>
+          <DrawerHeader borderBottomWidth="1px">Mini CRM</DrawerHeader>
           <DrawerBody p="0">
             <VStack align="stretch" spacing="0">
               {navLinks.map((link) => (
@@ -283,11 +241,11 @@ const Navigation: React.FC = () => {
                 borderRadius="0"
                 role="group"
                 cursor="pointer"
-                bg="pink.500"
+                bg="teal.500"
                 color="white"
                 fontWeight="semibold"
                 _hover={{
-                  bg: 'pink.600',
+                  bg: 'teal.600',
                   color: 'white',
                 }}
                 mt="2"

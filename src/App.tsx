@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ChakraProvider, CSSReset, Spinner, Box, Text, Center } from '@chakra-ui/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Import the CreateCampaign component directly
 import CreateCampaign from './pages/CreateCampaign';
@@ -14,6 +15,9 @@ const Orders = React.lazy(() => import('./pages/Orders'));
 const Campaigns = React.lazy(() => import('./pages/Campaigns'));
 const CampaignDetail = React.lazy(() => import('./pages/CampaignDetail'));
 const AuthCallbackPage = React.lazy(() => import('./pages/AuthCallback'));
+
+// Create a client
+const queryClient = new QueryClient();
 
 // Improved loading component
 const LoadingFallback = ({ componentName = "component" }) => (
@@ -42,79 +46,81 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   return (
-    <ChakraProvider>
-      <CSSReset />
-      <AuthProvider>
-        <Router>
-          <Routes>
-            {/* Auth routes */}
-            <Route path="/login" element={
-              <React.Suspense fallback={<LoadingFallback componentName="login page" />}>
-                <Login />
-              </React.Suspense>
-            } />
-            <Route path="/auth/success" element={
-              <React.Suspense fallback={<LoadingFallback componentName="authentication" />}>
-                <AuthCallbackPage />
-              </React.Suspense>
-            } />
-            
-            {/* Dashboard */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <React.Suspense fallback={<LoadingFallback componentName="dashboard" />}>
-                  <Dashboard />
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider>
+        <CSSReset />
+        <AuthProvider>
+          <Router>
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/login" element={
+                <React.Suspense fallback={<LoadingFallback componentName="login page" />}>
+                  <Login />
                 </React.Suspense>
-              </ProtectedRoute>
-            } />
-            
-            {/* Customer routes */}
-            <Route path="/customers" element={
-              <ProtectedRoute>
-                <React.Suspense fallback={<LoadingFallback componentName="customers page" />}>
-                  <Customers />
+              } />
+              <Route path="/auth/success" element={
+                <React.Suspense fallback={<LoadingFallback componentName="authentication" />}>
+                  <AuthCallbackPage />
                 </React.Suspense>
-              </ProtectedRoute>
-            } />
-            
-            {/* Order routes */}
-            <Route path="/orders" element={
-              <ProtectedRoute>
-                <React.Suspense fallback={<LoadingFallback componentName="orders page" />}>
-                  <Orders />
-                </React.Suspense>
-              </ProtectedRoute>
-            } />
-            
-            {/* Campaign routes - IMPORTANT: The order matters here */}
-            {/* First the campaigns list route */}
-            <Route path="/campaigns" element={
-              <ProtectedRoute>
-                <React.Suspense fallback={<LoadingFallback componentName="campaigns page" />}>
-                  <Campaigns />
-                </React.Suspense>
-              </ProtectedRoute>
-            } />
-            
-            {/* Special case - the CreateCampaign component directly loaded without suspense */}
-            <Route path="/campaigns/create" element={
-              <ProtectedRoute>
-                <CreateCampaign />
-              </ProtectedRoute>
-            } />
-            
-            {/* Last the dynamic campaign detail route */}
-            <Route path="/campaigns/:id" element={
-              <ProtectedRoute>
-                <React.Suspense fallback={<LoadingFallback componentName="campaign details" />}>
-                  <CampaignDetail />
-                </React.Suspense>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </ChakraProvider>
+              } />
+              
+              {/* Dashboard */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="dashboard" />}>
+                    <Dashboard />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+              
+              {/* Customer routes */}
+              <Route path="/customers" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="customers page" />}>
+                    <Customers />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+              
+              {/* Order routes */}
+              <Route path="/orders" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="orders page" />}>
+                    <Orders />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+              
+              {/* Campaign routes - IMPORTANT: The order matters here */}
+              {/* First the campaigns list route */}
+              <Route path="/campaigns" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="campaigns page" />}>
+                    <Campaigns />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+              
+              {/* Special case - the CreateCampaign component directly loaded without suspense */}
+              <Route path="/campaigns/create" element={
+                <ProtectedRoute>
+                  <CreateCampaign />
+                </ProtectedRoute>
+              } />
+              
+              {/* Last the dynamic campaign detail route */}
+              <Route path="/campaigns/:id" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="campaign details" />}>
+                    <CampaignDetail />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </ChakraProvider>
+    </QueryClientProvider>
   );
 }
 

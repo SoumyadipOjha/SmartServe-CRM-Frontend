@@ -55,7 +55,7 @@ const AuthCallback: React.FC = () => {
           </Alert>
         ) : (
           <>
-            <Spinner size="xl" color="pink.500" thickness="4px" />
+            <Spinner size="xl" color="teal.500" thickness="4px" />
             <Text>Completing authentication...</Text>
           </>
         )}

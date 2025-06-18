@@ -26,12 +26,18 @@ import {
   Text,
   Alert,
   AlertIcon,
-  AlertDescription
+  AlertDescription,
+  HStack,
+  useToast
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
+import { FiUpload } from 'react-icons/fi';
 import Layout from '../components/Layout';
 import CustomerService from '../services/customer.service';
 import { Customer } from '../types/models';
+import BulkUploadButton from '../pages/BulkUploadButton';
+import ExportButton from '../pages/ExportButton';
+import { useQueryClient } from 'react-query';
 
 const Customers: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -48,6 +54,8 @@ const Customers: React.FC = () => {
   });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const queryClient = useQueryClient();
+  const toast = useToast();
 
   useEffect(() => {
     fetchCustomers();
@@ -125,18 +133,34 @@ const Customers: React.FC = () => {
     }
   };
 
+  const handleUploadSuccess = () => {
+    // Refresh customers data
+    queryClient.invalidateQueries('customers');
+    toast({
+      title: 'Customers Imported',
+      description: 'Customer list has been updated',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
   return (
     <Layout>
-      <Box>
+      <Box p={4}>
         <Flex justify="space-between" align="center" mb={6}>
           <Heading size="lg">Customers</Heading>
-          <Button 
-            leftIcon={<AddIcon />} 
-            colorScheme="pink" 
-            onClick={handleAddNew}
-          >
-            Add Customer
-          </Button>
+          <HStack spacing={4}>
+            <ExportButton customers={customers || []} />
+            <BulkUploadButton onUploadSuccess={handleUploadSuccess} />
+            <Button 
+              leftIcon={<AddIcon />} 
+              colorScheme="teal" 
+              onClick={handleAddNew}
+            >
+              Add Customer
+            </Button>
+          </HStack>
         </Flex>
 
         {error && (
@@ -246,7 +270,7 @@ const Customers: React.FC = () => {
               <Button variant="ghost" mr={3} onClick={onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="pink" type="submit">
+              <Button colorScheme="teal" type="submit">
                 {isEditing ? 'Update' : 'Create'}
               </Button>
             </ModalFooter>

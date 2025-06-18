@@ -13,6 +13,7 @@ import {
   StatNumber,
   StatHelpText,
   Flex,
+  Divider,
   Alert,
   AlertTitle,
   AlertDescription,
@@ -363,7 +364,7 @@ const CampaignDetail: React.FC = () => {
       case 'draft':
         return 'blue';
       case 'completed':
-        return 'pink';
+        return 'teal';
       case 'cancelled':
         return 'red';
       default:
@@ -433,7 +434,7 @@ const CampaignDetail: React.FC = () => {
     return (
       <ListItem key={`${condition.field}-${condition.value}`}>
         <Text>
-          <Tag colorScheme="pink" mr={2}>{condition.field}</Tag> 
+          <Tag colorScheme="teal" mr={2}>{condition.field}</Tag> 
           {formatRuleOperator(condition.operator)} 
           <Tag colorScheme="blue" ml={2}>
             {typeof condition.value === 'object' 
@@ -521,7 +522,7 @@ const CampaignDetail: React.FC = () => {
             <Progress 
               value={getProgressPercentage()} 
               size="lg" 
-              colorScheme="pink"
+              colorScheme="teal"
               mb={4}
             />
             <Grid templateColumns="repeat(3, 1fr)" gap={4}>

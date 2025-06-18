@@ -19,26 +19,35 @@ import {
   HStack,
   Spinner
 } from '@chakra-ui/react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import Layout from '../components/Layout';
 import CampaignService from '../services/campaign.service';
 import { Campaign } from '../types/models';
 import CreateCampaign from './CreateCampaign';
 
 const Campaigns: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const refreshTimerRef = useRef<number | null>(null);
   const mountedRef = useRef<boolean>(true);
+  const lastRefreshTimeRef = useRef<number>(0);
 
+  const hasActiveCampaigns = campaigns.some(c => c.status === 'active');
 
   const fetchCampaigns = async (showLoading = true) => {
     if (showLoading) {
       setLoading(true);
-    } 
+    } else {
+      setRefreshing(true);
+    }
 
     try {
       const campaignsData = await CampaignService.getCampaigns();
@@ -85,6 +94,7 @@ const Campaigns: React.FC = () => {
         }
       }
 
+      lastRefreshTimeRef.current = Date.now();
     } catch (err) {
       console.error('Error fetching campaigns:', err);
       if (mountedRef.current) {
@@ -93,12 +103,68 @@ const Campaigns: React.FC = () => {
     } finally {
       if (mountedRef.current) {
         setLoading(false);
+        setRefreshing(false);
         setLoadingStats(false);
       }
     }
   };
 
+  const refreshActiveCampaignStats = async () => {
+    if (!hasActiveCampaigns) return;
 
+    const now = Date.now();
+    if (now - lastRefreshTimeRef.current < 3000) return;
+
+    try {
+      const activeCampaigns = campaigns.filter(c => c.status === 'active');
+
+      const updatedStats = await Promise.all(
+        activeCampaigns.map(async (campaign) => {
+          try {
+            const stats = await CampaignService.getCampaignStats(campaign._id);
+            return {
+              id: campaign._id,
+              sent: stats.sent,
+              failed: stats.failed,
+              audienceSize: stats.audienceSize
+            };
+          } catch (err) {
+            console.error(`Error fetching stats for campaign ${campaign._id}:`, err);
+            return null;
+          }
+        })
+      );
+
+      if (mountedRef.current) {
+        setCampaigns(prevCampaigns =>
+          prevCampaigns.map(campaign => {
+            const updatedStat = updatedStats.find(s => s && s.id === campaign._id);
+
+            if (updatedStat) {
+              const totalProcessed = updatedStat.sent + updatedStat.failed;
+              const isCompleted = totalProcessed >= updatedStat.audienceSize && updatedStat.audienceSize > 0;
+
+              return {
+                ...campaign,
+                deliveryStats: {
+                  sent: updatedStat.sent,
+                  failed: updatedStat.failed
+                },
+                audienceSize: updatedStat.audienceSize,
+                status: isCompleted ? 'completed' : campaign.status
+              };
+            }
+
+            return campaign;
+          })
+        );
+
+        lastRefreshTimeRef.current = now;
+      }
+    } catch (err) {
+      console.error('Error refreshing campaign stats:', err);
+    }
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -110,9 +176,32 @@ const Campaigns: React.FC = () => {
     return () => {
       mountedRef.current = false;
 
-      
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
     };
   }, [showCreateForm, location.pathname]);
+
+  useEffect(() => {
+    if (hasActiveCampaigns && !refreshTimerRef.current) {
+      refreshTimerRef.current = window.setInterval(() => {
+        if (mountedRef.current && !showCreateForm) {
+          refreshActiveCampaignStats();
+        }
+      }, 5000);
+    } else if (!hasActiveCampaigns && refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
+    return () => {
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+    };
+  }, [hasActiveCampaigns, showCreateForm]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,7 +210,7 @@ const Campaigns: React.FC = () => {
       case 'draft':
         return 'blue';
       case 'completed':
-        return 'pink';
+        return 'teal';
       case 'cancelled':
         return 'red';
       default:
@@ -144,10 +233,52 @@ const Campaigns: React.FC = () => {
     setShowCreateForm(true);
   };
 
+  const handleRefresh = () => {
+    fetchCampaigns(false);
+  };
 
   if (showCreateForm) {
     return <CreateCampaign onCancel={() => setShowCreateForm(false)} />;
   }
+
+
+const handleExportCampaigns = () => {
+  const headers = [
+    'Campaign Name',
+    'Status',
+    'Audience Size',
+    'Sent',
+    'Failed',
+    'Success Rate',
+    'Created Date'
+  ];
+
+  const rows = campaigns.map(c => {
+    const totalSent = c.deliveryStats.sent;
+    const totalFailed = c.deliveryStats.failed;
+    const totalProcessed = totalSent + totalFailed;
+    const successRate =
+      totalProcessed > 0
+        ? `${Math.round((totalSent / totalProcessed) * 100)}%`
+        : '0%';
+
+    return [
+      c.name,
+      c.status,
+      c.audienceSize,
+      totalSent,
+      totalFailed,
+      successRate,
+      new Date(c.createdAt).toLocaleDateString()
+    ];
+  });
+
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Campaigns');
+  XLSX.writeFile(workbook, `campaigns-${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
 
   return (
     <Layout>
@@ -156,11 +287,33 @@ const Campaigns: React.FC = () => {
           <Heading size="lg">Marketing Campaigns</Heading>
           <HStack spacing={2}>
             <Button
-              onClick={handleCreateCampaign}
-              colorScheme="pink"
+              onClick={handleRefresh}
+              leftIcon={<RepeatIcon />}
+              variant="outline"
+              size="md"
+              isLoading={refreshing}
+              isDisabled={loading}
             >
-              Create Campaign
+              Refresh
             </Button>
+            <HStack spacing={2}>
+
+  <Button
+    onClick={handleExportCampaigns}
+    colorScheme="blue"
+  >
+    Export Campaigns
+  </Button>
+
+  <Button
+    onClick={handleCreateCampaign}
+    leftIcon={<AddIcon />}
+    colorScheme="teal"
+  >
+    Create Campaign
+  </Button>
+</HStack>
+
           </HStack>
         </Flex>
 
@@ -173,7 +326,7 @@ const Campaigns: React.FC = () => {
 
         {loading ? (
           <Box textAlign="center" py={8}>
-            <Spinner size="xl" mb={4} color="pink.500" />
+            <Spinner size="xl" mb={4} color="teal.500" />
             <Text>Loading campaigns...</Text>
           </Box>
         ) : (
@@ -208,7 +361,7 @@ const Campaigns: React.FC = () => {
                         <Text
                           as={RouterLink}
                           to={`/campaigns/${campaign._id}`}
-                          color="pink.500"
+                          color="teal.500"
                           fontWeight="medium"
                         >
                           {campaign.name}
@@ -230,7 +383,7 @@ const Campaigns: React.FC = () => {
                           <Progress
                             value={calculateDeliveryProgress(campaign)}
                             size="sm"
-                            colorScheme="pink"
+                            colorScheme="teal"
                           />
                           <Text fontSize="xs" mt={1}>
                             {campaign.deliveryStats.sent + campaign.deliveryStats.failed} of {campaign.audienceSize} sent
