@@ -152,7 +152,9 @@ const Orders: React.FC = () => {
     const headers = ['Order ID', 'Customer Name', 'Amount', 'Date', 'Status'];
     const rows = orders.map(order => [
       order._id,
-      typeof order.customer === 'object' ? order.customer.name : 'Unknown Customer',
+      order.customer && typeof order.customer === 'object' && 'name' in order.customer
+        ? order.customer.name
+        : 'Unknown Customer',
       `$${order.amount.toFixed(2)}`,
       new Date(order.orderDate).toLocaleDateString(),
       order.status
@@ -203,7 +205,11 @@ const Orders: React.FC = () => {
                   orders.map(order => (
                     <Tr key={order._id}>
                       <Td>{order._id.substring(0, 8)}...</Td>
-                      <Td>{typeof order.customer === 'object' ? order.customer.name : 'Unknown Customer'}</Td>
+                      <Td>
+                        {order.customer && typeof order.customer === 'object' && 'name' in order.customer
+                          ? order.customer.name
+                          : 'Unknown Customer'}
+                      </Td>
                       <Td>${order.amount.toFixed(2)}</Td>
                       <Td>{new Date(order.orderDate).toLocaleDateString()}</Td>
                       <Td><Badge colorScheme={getStatusColor(order.status)}>{order.status}</Badge></Td>
@@ -225,9 +231,6 @@ const Orders: React.FC = () => {
           </Box>
         )}
       </Box>
-
-      {/* Modal omitted here for brevity */}
-
     </Layout>
   );
 };
