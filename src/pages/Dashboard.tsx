@@ -399,7 +399,10 @@ const Dashboard: React.FC = () => {
                   <Flex p={4} justify="space-between" align="center">
                     <Box>
                       <Text fontWeight="bold" color={textColor}>
-                        {typeof order.customer === 'object' ? order.customer.name : 'Customer'}
+                       {order.customer && typeof order.customer === 'object' && order.customer.name
+  ? order.customer.name
+  : 'Unknown Customer'}
+
                       </Text>
                       <Text fontSize="sm" color={subtleText}>
                         {new Date(order.orderDate).toLocaleDateString()} • Order #{order._id.slice(-4)}

@@ -43,10 +43,6 @@ const Login: React.FC = () => {
           >
             Sign in with Google
           </Button>
-          
-          <Text fontSize="sm" color="gray.500" mt={6} textAlign="center">
-            This platform is part of the Xeno SDE Internship 2025 Project
-          </Text>
         </VStack>
       </Box>
     </Flex>
