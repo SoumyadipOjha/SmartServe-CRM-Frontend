@@ -24,7 +24,7 @@ import { keyframes } from '@emotion/react';
 import { Link as RouterLink } from 'react-router-dom';
 import Layout from '../components/Layout';
 import AnalyticsService, { AnalyticsSummary } from '../services/analytics.service';
-import { FiUsers, FiShoppingCart, FiDollarSign, FiMail, FiArrowUp, FiWifi, FiWifiOff } from 'react-icons/fi';
+import { FiUsers, FiShoppingCart, FiTrendingUp, FiMail, FiArrowUp, FiWifi, FiWifiOff } from 'react-icons/fi';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 
@@ -34,6 +34,12 @@ const pulseAnim = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 `;
+
+const fmtCurrency = (v: number): string => {
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000)     return `$${(v / 1_000).toFixed(1)}k`;
+  return `$${v.toFixed(0)}`;
+};
 
 const formatSecondsAgo = (s: number): string => {
   if (s < 5) return 'just now';
@@ -256,109 +262,113 @@ const Dashboard: React.FC = () => {
       </Flex>
 
       {/* ── Key Metrics ────────────────────────────────────────────────────── */}
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+      <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={5} mb={8}>
 
         {/* Customers */}
         <Stat
-          p={6} shadow="md" borderRadius="lg" bg={cardBg}
+          p={5} shadow="md" borderRadius="xl" bg={cardBg} overflow="hidden"
           borderLeft="4px solid" borderColor="teal.400"
-          transition="transform 0.2s" _hover={{ transform: 'translateY(-4px)', shadow: 'lg' }}
+          transition="transform 0.2s" _hover={{ transform: 'translateY(-3px)', shadow: 'lg' }}
         >
-          <Flex justify="space-between">
-            <Box>
-              <StatLabel fontSize="sm" color={subtleText}>Total Customers</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color={textColor}>
+          <Flex justify="space-between" align="flex-start">
+            <Box minW="0" flex="1" mr={3}>
+              <StatLabel fontSize="xs" fontWeight="600" textTransform="uppercase"
+                letterSpacing="wide" color={subtleText}>Total Customers</StatLabel>
+              <StatNumber fontSize="3xl" fontWeight="800" color={textColor} lineHeight="1.1" mt={1}>
                 {customers.total}
               </StatNumber>
               <StatHelpText mb={0}>
-                <HStack spacing={2} mt={1} fontSize="xs">
-                  <Badge colorScheme="green" variant="subtle">{customers.health.active} active</Badge>
-                  <Badge colorScheme="orange" variant="subtle">{customers.health.at_risk} at risk</Badge>
+                <HStack spacing={1} mt={2} flexWrap="wrap">
+                  <Badge colorScheme="green" variant="subtle" fontSize="10px">{customers.health.active} active</Badge>
+                  <Badge colorScheme="orange" variant="subtle" fontSize="10px">{customers.health.at_risk} at risk</Badge>
                 </HStack>
               </StatHelpText>
             </Box>
-            <Flex w="12" h="12" bg="teal.50" color="teal.400" borderRadius="full" align="center" justify="center">
-              <Icon as={FiUsers} boxSize="6" />
+            <Flex flexShrink={0} w="11" h="11" bg="teal.50" color="teal.500" borderRadius="xl" align="center" justify="center">
+              <Icon as={FiUsers} boxSize="5" />
             </Flex>
           </Flex>
         </Stat>
 
         {/* Revenue */}
         <Stat
-          p={6} shadow="md" borderRadius="lg" bg={cardBg}
+          p={5} shadow="md" borderRadius="xl" bg={cardBg} overflow="hidden"
           borderLeft="4px solid" borderColor="green.400"
-          transition="transform 0.2s" _hover={{ transform: 'translateY(-4px)', shadow: 'lg' }}
+          transition="transform 0.2s" _hover={{ transform: 'translateY(-3px)', shadow: 'lg' }}
         >
-          <Flex justify="space-between">
-            <Box>
-              <StatLabel fontSize="sm" color={subtleText}>Total Revenue</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color={textColor}>
-                ${orders.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <Flex justify="space-between" align="flex-start">
+            <Box minW="0" flex="1" mr={3}>
+              <StatLabel fontSize="xs" fontWeight="600" textTransform="uppercase"
+                letterSpacing="wide" color={subtleText}>Total Revenue</StatLabel>
+              <StatNumber fontSize="3xl" fontWeight="800" color={textColor} lineHeight="1.1" mt={1}>
+                {fmtCurrency(orders.revenue)}
               </StatNumber>
               <StatHelpText mb={0}>
-                <Flex align="center" color="green.500" fontSize="sm">
+                <Flex align="center" color="green.500" fontSize="xs" mt={2}>
                   <Icon as={FiArrowUp} mr={1} />
-                  Avg ${orders.avgOrderValue.toFixed(2)} / order
+                  Avg {fmtCurrency(orders.avgOrderValue)} / order
                 </Flex>
               </StatHelpText>
             </Box>
-            <Flex w="12" h="12" bg="green.50" color="green.400" borderRadius="full" align="center" justify="center">
-              <Icon as={FiDollarSign} boxSize="6" />
+            <Flex flexShrink={0} w="11" h="11" bg="green.50" color="green.500" borderRadius="xl" align="center" justify="center">
+              <Icon as={FiTrendingUp} boxSize="5" />
             </Flex>
           </Flex>
         </Stat>
 
         {/* Orders */}
         <Stat
-          p={6} shadow="md" borderRadius="lg" bg={cardBg}
+          p={5} shadow="md" borderRadius="xl" bg={cardBg} overflow="hidden"
           borderLeft="4px solid" borderColor="blue.400"
-          transition="transform 0.2s" _hover={{ transform: 'translateY(-4px)', shadow: 'lg' }}
+          transition="transform 0.2s" _hover={{ transform: 'translateY(-3px)', shadow: 'lg' }}
         >
-          <Flex justify="space-between">
-            <Box>
-              <StatLabel fontSize="sm" color={subtleText}>Total Orders</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color={textColor}>
+          <Flex justify="space-between" align="flex-start">
+            <Box minW="0" flex="1" mr={3}>
+              <StatLabel fontSize="xs" fontWeight="600" textTransform="uppercase"
+                letterSpacing="wide" color={subtleText}>Total Orders</StatLabel>
+              <StatNumber fontSize="3xl" fontWeight="800" color={textColor} lineHeight="1.1" mt={1}>
                 {orders.total}
               </StatNumber>
-              <StatHelpText mb={0}>
-                <Link as={RouterLink} to="/orders" color={successColor} fontSize="sm">
-                  View all orders
+              <StatHelpText mb={0} mt={2}>
+                <Link as={RouterLink} to="/orders" color="blue.500" fontSize="xs" fontWeight="500">
+                  View all orders →
                 </Link>
               </StatHelpText>
             </Box>
-            <Flex w="12" h="12" bg="blue.50" color="blue.400" borderRadius="full" align="center" justify="center">
-              <Icon as={FiShoppingCart} boxSize="6" />
+            <Flex flexShrink={0} w="11" h="11" bg="blue.50" color="blue.500" borderRadius="xl" align="center" justify="center">
+              <Icon as={FiShoppingCart} boxSize="5" />
             </Flex>
           </Flex>
         </Stat>
 
         {/* Campaigns */}
         <Stat
-          p={6} shadow="md" borderRadius="lg" bg={cardBg}
+          p={5} shadow="md" borderRadius="xl" bg={cardBg} overflow="hidden"
           borderLeft="4px solid" borderColor="purple.400"
-          transition="transform 0.2s" _hover={{ transform: 'translateY(-4px)', shadow: 'lg' }}
+          transition="transform 0.2s" _hover={{ transform: 'translateY(-3px)', shadow: 'lg' }}
         >
-          <Flex justify="space-between">
-            <Box>
-              <StatLabel fontSize="sm" color={subtleText}>Campaigns</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color={textColor}>
+          <Flex justify="space-between" align="flex-start">
+            <Box minW="0" flex="1" mr={3}>
+              <StatLabel fontSize="xs" fontWeight="600" textTransform="uppercase"
+                letterSpacing="wide" color={subtleText}>Campaigns</StatLabel>
+              <StatNumber fontSize="3xl" fontWeight="800" color={textColor} lineHeight="1.1" mt={1}>
                 {campaigns.total}
               </StatNumber>
               <StatHelpText mb={0}>
-                <HStack spacing={2} mt={1} fontSize="xs">
+                <HStack spacing={1} mt={2} flexWrap="wrap">
                   {campaigns.active > 0 && (
-                    <Badge colorScheme="green" variant="subtle">
+                    <Badge colorScheme="green" variant="subtle" fontSize="10px">
                       {campaigns.active} running
                     </Badge>
                   )}
-                  <Badge colorScheme="teal" variant="subtle">
+                  <Badge colorScheme="teal" variant="subtle" fontSize="10px">
                     {campaigns.deliveryRate}% delivery
                   </Badge>
                 </HStack>
               </StatHelpText>
             </Box>
-            <Flex w="12" h="12" bg="purple.50" color="purple.400" borderRadius="full" align="center" justify="center">
-              <Icon as={FiMail} boxSize="6" />
+            <Flex flexShrink={0} w="11" h="11" bg="purple.50" color="purple.500" borderRadius="xl" align="center" justify="center">
+              <Icon as={FiMail} boxSize="5" />
             </Flex>
           </Flex>
         </Stat>
