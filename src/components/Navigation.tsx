@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiPlus, FiBookmark, FiArrowLeft } from 'react-icons/fi';
+import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiBookmark, FiArrowLeft, FiTrello, FiTrendingUp, FiClipboard, FiRepeat, FiSettings } from 'react-icons/fi';
 
 const Navigation: React.FC = () => {
   const { currentUser, logout } = useAuth();
@@ -46,25 +46,33 @@ const Navigation: React.FC = () => {
   };
 
   const navLinks = [
-    { name: 'Dashboard', path: '/', icon: <FiHome /> },
-    { name: 'Customers', path: '/customers', icon: <FiUsers /> },
-    { name: 'Orders', path: '/orders', icon: <FiShoppingCart /> },
-    { name: 'Campaigns', path: '/campaigns', icon: <FiMail /> },
-    { name: 'Segments', path: '/segments', icon: <FiBookmark /> },
+    { name: 'Dashboard',  path: '/',          icon: <FiHome /> },
+    { name: 'Customers',  path: '/customers', icon: <FiUsers /> },
+    { name: 'Pipeline',   path: '/pipeline',  icon: <FiTrello /> },
+    { name: 'Revenue',    path: '/revenue',   icon: <FiTrendingUp /> },
+    { name: 'Orders',     path: '/orders',    icon: <FiShoppingCart /> },
+    { name: 'Campaigns',  path: '/campaigns',  icon: <FiMail /> },
+    { name: 'Sequences',  path: '/sequences',  icon: <FiRepeat /> },
+    { name: 'Lead Forms', path: '/lead-forms', icon: <FiClipboard /> },
+    { name: 'Segments',   path: '/segments',   icon: <FiBookmark /> },
+    { name: 'Team',       path: '/team',       icon: <FiSettings /> },
   ];
 
   // Mobile navigation
   const MobileNav = (
     <Flex
       display={{ base: 'flex', md: 'none' }}
-      align="center" 
-      justify="space-between" 
+      align="center"
+      justify="space-between"
       bg={topNavBg}
       px="4"
       py="2"
       borderBottomWidth="1px"
       borderColor={borderColor}
       shadow="sm"
+      pos="sticky"
+      top="0"
+      zIndex="banner"
     >
       <HStack spacing={1}>
         <IconButton
@@ -102,34 +110,42 @@ const Navigation: React.FC = () => {
 
   // Desktop sidebar
   const Sidebar = (
-    <Box
+    <Flex
       as="nav"
       pos="fixed"
       top="0"
       left="0"
       zIndex="sticky"
       h="full"
-      pb="10"
-      overflowX="hidden"
-      overflowY="auto"
+      direction="column"
       bg={sidebarBg}
       borderColor={borderColor}
       borderRightWidth="1px"
       w="240px"
-      display={{ base: 'none', md: 'block' }}
+      display={{ base: 'none', md: 'flex' }}
     >
-      <Flex px="4" py="5" align="center">
+      {/* Logo */}
+      <Flex px="4" py="5" align="center" flexShrink={0}>
         <Text fontSize="2xl" fontWeight="bold" color={activeColor}>
           Flayx
         </Text>
       </Flex>
+
+      {/* Scrollable nav links */}
       <Flex
         direction="column"
         as="nav"
         fontSize="md"
         color="gray.600"
         aria-label="Main Navigation"
-        mt="6"
+        flex="1"
+        overflowY="auto"
+        overflowX="hidden"
+        pb="2"
+        css={{
+          '&::-webkit-scrollbar': { width: '4px' },
+          '&::-webkit-scrollbar-thumb': { background: 'rgba(0,0,0,0.15)', borderRadius: '4px' },
+        }}
       >
         {navLinks.map((link) => (
           <Link
@@ -138,16 +154,14 @@ const Navigation: React.FC = () => {
             to={link.path}
             p="4"
             mx="4"
+            my="0.5"
             borderRadius="lg"
             role="group"
             cursor="pointer"
             bg={isActive(link.path) ? activeBg : 'transparent'}
             color={isActive(link.path) ? activeColor : 'inherit'}
             fontWeight={isActive(link.path) ? 'semibold' : 'normal'}
-            _hover={{
-              bg: hoverBg,
-              color: activeColor,
-            }}
+            _hover={{ bg: hoverBg, color: activeColor }}
           >
             <HStack spacing="3">
               <Box fontSize="lg">{link.icon}</Box>
@@ -155,41 +169,17 @@ const Navigation: React.FC = () => {
             </HStack>
           </Link>
         ))}
-
-        <Link
-          as={RouterLink}
-          to="/campaigns/create"
-          p="4"
-          mx="4"
-          borderRadius="lg"
-          role="group"
-          cursor="pointer"
-          bg={isActive('/campaigns/create') ? activeBg : 'teal.500'}
-          color={isActive('/campaigns/create') ? activeColor : 'white'}
-          fontWeight="semibold"
-          _hover={{
-            bg: 'teal.600',
-            color: 'white',
-          }}
-          mt="6"
-        >
-          <HStack spacing="3">
-            <Box fontSize="lg"><FiPlus /></Box>
-            <Text>New Campaign</Text>
-          </HStack>
-        </Link>
       </Flex>
 
+      {/* User section — always visible at bottom */}
       {currentUser && (
         <Flex
-          pos="absolute"
-          bottom="5"
-          width="100%"
+          flexShrink={0}
           px="4"
+          py="4"
           align="center"
           borderTop="1px"
           borderColor={borderColor}
-          pt="4"
         >
           <Menu>
             <MenuButton as={Button} variant="ghost" size="sm" width="100%">
@@ -207,7 +197,7 @@ const Navigation: React.FC = () => {
           </Menu>
         </Flex>
       )}
-    </Box>
+    </Flex>
   );
 
   return (
@@ -245,28 +235,6 @@ const Navigation: React.FC = () => {
                   </HStack>
                 </Link>
               ))}
-              <Link
-                as={RouterLink}
-                to="/campaigns/create"
-                onClick={onClose}
-                p="4"
-                borderRadius="0"
-                role="group"
-                cursor="pointer"
-                bg="teal.500"
-                color="white"
-                fontWeight="semibold"
-                _hover={{
-                  bg: 'teal.600',
-                  color: 'white',
-                }}
-                mt="2"
-              >
-                <HStack spacing="3">
-                  <Box fontSize="lg"><FiPlus /></Box>
-                  <Text>New Campaign</Text>
-                </HStack>
-              </Link>
             </VStack>
           </DrawerBody>
         </DrawerContent>

@@ -17,14 +17,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Box
           maxW="7xl"
           mx="auto"
-          px={{ base: '4', md: '8', lg: '12' }}
-          py="6"
+          px={{ base: 2, sm: 4, md: 8, lg: 12 }}
+          py={{ base: 3, md: 6 }}
         >
           <Box
-            borderRadius="lg"
+            borderRadius={{ base: 'md', md: 'lg' }}
             bg={contentBgColor}
             shadow="sm"
-            p={{ base: '4', md: '6' }}
+            p={{ base: 3, sm: 4, md: 6 }}
           >
             {children}
           </Box>

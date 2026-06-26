@@ -367,24 +367,24 @@ const Dashboard: React.FC = () => {
       {/* ── Charts ─────────────────────────────────────────────────────────── */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={8}>
         {/* 30-day revenue line chart */}
-        <Box p={6} bg={cardBg} shadow="md" borderRadius="lg" height="350px">
-          <Heading size="md" mb={4}>Revenue Trend (Last 30 Days)</Heading>
-          <Box height="calc(100% - 44px)">
+        <Box p={{ base: 4, md: 6 }} bg={cardBg} shadow="md" borderRadius="lg" height={{ base: '260px', md: '350px' }}>
+          <Heading size={{ base: 'sm', md: 'md' }} mb={3}>Revenue Trend (Last 30 Days)</Heading>
+          <Box height="calc(100% - 40px)">
             <Line data={revenueChartData} options={lineChartOptions as any} />
           </Box>
         </Box>
 
         {/* Delivery + Health doughnuts */}
-        <SimpleGrid columns={2} spacing={6}>
-          <Box p={5} bg={cardBg} shadow="md" borderRadius="lg">
-            <Heading size="sm" mb={3}>Campaign Delivery</Heading>
-            <Box height="190px">
+        <SimpleGrid columns={2} spacing={{ base: 3, md: 6 }}>
+          <Box p={{ base: 3, md: 5 }} bg={cardBg} shadow="md" borderRadius="lg">
+            <Heading size="sm" mb={2}>Campaign Delivery</Heading>
+            <Box height={{ base: '140px', md: '190px' }}>
               <Doughnut data={deliveryChartData} options={doughnutOptions} />
             </Box>
           </Box>
-          <Box p={5} bg={cardBg} shadow="md" borderRadius="lg">
-            <Heading size="sm" mb={3}>Customer Health</Heading>
-            <Box height="190px">
+          <Box p={{ base: 3, md: 5 }} bg={cardBg} shadow="md" borderRadius="lg">
+            <Heading size="sm" mb={2}>Customer Health</Heading>
+            <Box height={{ base: '140px', md: '190px' }}>
               <Doughnut data={healthChartData} options={doughnutOptions} />
             </Box>
           </Box>

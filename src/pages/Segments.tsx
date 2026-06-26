@@ -80,28 +80,31 @@ function ConditionRow({
 }) {
   const ops = OPERATORS[condition.field] ?? OPERATORS['totalSpend'];
   return (
-    <HStack spacing={2} align="center" flexWrap="wrap">
+    <Flex gap={2} align="flex-start" flexWrap="wrap">
       <Select
-        size="sm" value={condition.field} w="160px"
+        size="sm" value={condition.field}
+        flex={{ base: '1 1 100%', sm: '1 1 140px' }}
         onChange={e => onChange(index, { ...condition, field: e.target.value, operator: ((OPERATORS[e.target.value] ?? [])[0]?.value ?? '>') as RuleCondition['operator'], value: '' })}
       >
         {FIELDS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
       </Select>
       <Select
-        size="sm" value={condition.operator} w="130px"
+        size="sm" value={condition.operator}
+        flex={{ base: '1 1 calc(50% - 4px)', sm: '1 1 110px' }}
         onChange={e => onChange(index, { ...condition, operator: e.target.value as any })}
       >
         {ops.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </Select>
       <Input
-        size="sm" w="100px" placeholder="value"
+        size="sm" placeholder="value"
+        flex={{ base: '1 1 calc(50% - 28px)', sm: '1 1 80px' }}
         value={String(condition.value)}
         onChange={e => onChange(index, { ...condition, value: e.target.value })}
       />
       {canRemove && (
         <IconButton aria-label="Remove condition" icon={<DeleteIcon />} size="sm" variant="ghost" colorScheme="red" onClick={() => onRemove(index)} />
       )}
-    </HStack>
+    </Flex>
   );
 }
 
@@ -343,7 +346,7 @@ const Segments: React.FC = () => {
       </Box>
 
       {/* ── New Segment Drawer ── */}
-      <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="md">
+      <Drawer isOpen={isOpen} onClose={onClose} placement="right" size={['full', 'md']}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />

@@ -618,7 +618,7 @@ const CampaignDetail: React.FC = () => {
               isIndeterminate={campaign.status === 'queued' && (!job || job.total === 0)}
               mb={4}
             />
-            <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+            <Grid templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }} gap={4}>
               <Stat>
                 <StatLabel>Audience Size</StatLabel>
                 <StatNumber>{campaign.audienceSize}</StatNumber>

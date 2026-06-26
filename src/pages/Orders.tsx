@@ -199,7 +199,7 @@ const Orders: React.FC = () => {
 
         {/* Search + filter row */}
         <Flex mb={4} gap={3} flexWrap="wrap">
-          <InputGroup maxW="280px">
+          <InputGroup flex={{ base: 1, md: 'none' }} maxW={{ base: '100%', md: '280px' }}>
             <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
             <Input
               placeholder="Search by customer name…"
@@ -208,7 +208,8 @@ const Orders: React.FC = () => {
             />
           </InputGroup>
           <Select
-            maxW="180px"
+            flex={{ base: 1, md: 'none' }}
+            maxW={{ base: '100%', md: '180px' }}
             placeholder="All statuses"
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -232,10 +233,10 @@ const Orders: React.FC = () => {
               <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                 <Thead>
                   <Tr>
-                    <Th>Order ID</Th>
+                    <Th display={{ base: 'none', md: 'table-cell' }}>Order ID</Th>
                     <Th>Customer</Th>
                     <Th {...thProps('amount')}>Amount <SortIndicator active={sortField === 'amount'} dir={sortDir} /></Th>
-                    <Th {...thProps('orderDate')}>Date <SortIndicator active={sortField === 'orderDate'} dir={sortDir} /></Th>
+                    <Th display={{ base: 'none', sm: 'table-cell' }} {...thProps('orderDate')}>Date <SortIndicator active={sortField === 'orderDate'} dir={sortDir} /></Th>
                     <Th>Status</Th>
                     <Th>Actions</Th>
                   </Tr>
@@ -246,13 +247,13 @@ const Orders: React.FC = () => {
                   ) : (
                     paginated.map(order => (
                       <Tr key={order._id}>
-                        <Td>{order._id.substring(0, 8)}…</Td>
+                        <Td display={{ base: 'none', md: 'table-cell' }}>{order._id.substring(0, 8)}…</Td>
                         <Td>
                           {order.customer && typeof order.customer === 'object' && 'name' in order.customer
                             ? (order.customer as Customer).name : 'Unknown Customer'}
                         </Td>
                         <Td>${order.amount.toFixed(2)}</Td>
-                        <Td>{new Date(order.orderDate).toLocaleDateString()}</Td>
+                        <Td display={{ base: 'none', sm: 'table-cell' }}>{new Date(order.orderDate).toLocaleDateString()}</Td>
                         <Td><Badge colorScheme={getStatusColor(order.status)}>{order.status}</Badge></Td>
                         <Td>
                           <Menu>
@@ -276,7 +277,7 @@ const Orders: React.FC = () => {
       </Box>
 
       {/* New Order Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} size={['full', 'lg']} scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>New Order</ModalHeader>
