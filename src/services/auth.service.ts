@@ -40,6 +40,14 @@ const AuthService = {
     },
 
     /**
+     * Demo login — calls backend, stores returned JWT, no OAuth needed
+     */
+    demoLogin: async (): Promise<void> => {
+        const response = await apiClient.post<{ token: string }>('/auth/demo');
+        localStorage.setItem('token', response.data.token);
+    },
+
+    /**
      * Logout user
      */
     logout: (): void => {

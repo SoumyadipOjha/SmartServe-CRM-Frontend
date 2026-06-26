@@ -7,6 +7,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: () => void;
+    demoLogin: () => Promise<void>;
     logout: () => void;
     checkToken: () => Promise<void>;
 }
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     isLoading: true,
     login: () => {},
+    demoLogin: async () => {},
     logout: () => {},
     checkToken: async () => {}
 });
@@ -29,6 +31,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = () => {
         AuthService.initiateGoogleLogin();
+    };
+
+    const demoLogin = async () => {
+        setIsLoading(true);
+        try {
+            await AuthService.demoLogin();
+            await checkToken();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const logout = () => {
@@ -93,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         isLoading,
         login,
+        demoLogin,
         logout,
         checkToken
     };

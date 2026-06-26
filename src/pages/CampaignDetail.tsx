@@ -27,6 +27,7 @@ import {
   ListItem,
   HStack,
   Tag,
+  Spinner,
 } from '@chakra-ui/react';
 import { ArrowBackIcon, AlertIcon } from '@chakra-ui/icons';
 import {
@@ -40,7 +41,7 @@ import {
 } from 'chart.js';
 import Layout from '../components/Layout';
 import CampaignService from '../services/campaign.service';
-import { Campaign, RuleCondition } from '../types/models';
+import { Campaign, CampaignJob, RuleCondition } from '../types/models';
 import { Bar } from 'react-chartjs-2';
 
 // Register ChartJS components
@@ -63,11 +64,13 @@ const CampaignDetail: React.FC = () => {
   const [activating, setActivating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [job, setJob] = useState<CampaignJob | null>(null);
   const refreshIntervalRef = useRef<number | null>(null);
+  const jobPollRef = useRef<number | null>(null);
   
   // Add these refs to control refresh behavior
   const stableCountRef = useRef<number>(0);
-  const lastStatsRef = useRef<{ sent: number; failed: number }>({ sent: 0, failed: 0 });
+  const lastStatsRef = useRef<{ sent: number; opened: number; failed: number }>({ sent: 0, opened: 0, failed: 0 });
   const totalRefreshAttempts = useRef<number>(0);
   const maxRefreshAttempts = 20; // Limit the number of refresh attempts
   const mountedRef = useRef<boolean>(true);
@@ -77,11 +80,14 @@ const CampaignDetail: React.FC = () => {
     fetchCampaign();
 
     return () => {
-      // Clean up interval and mark component as unmounted
       mountedRef.current = false;
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
+      }
+      if (jobPollRef.current) {
+        clearInterval(jobPollRef.current);
+        jobPollRef.current = null;
       }
     };
   }, []);
@@ -100,7 +106,8 @@ const CampaignDetail: React.FC = () => {
 
       // Store current stats for comparison
       lastStatsRef.current = {
-        sent: campaign.deliveryStats.sent,
+        sent:   campaign.deliveryStats.sent,
+        opened: campaign.deliveryStats.opened ?? 0,
         failed: campaign.deliveryStats.failed,
       };
 
@@ -128,6 +135,20 @@ const CampaignDetail: React.FC = () => {
     }
   }, [campaign?.status, campaign?.audienceSize]);
 
+  // Auto-start job polling when campaign enters queued/active state
+  useEffect(() => {
+    if (!campaign || !id) return;
+    if ((campaign.status === 'queued' || campaign.status === 'active') && !jobPollRef.current) {
+      startJobPolling(id);
+    }
+    if (campaign.status === 'completed' || campaign.status === 'cancelled') {
+      if (jobPollRef.current) {
+        clearInterval(jobPollRef.current);
+        jobPollRef.current = null;
+      }
+    }
+  }, [campaign?.status]);
+
   const fetchCampaign = async () => {
     if (!id || !mountedRef.current) return;
 
@@ -147,14 +168,15 @@ const CampaignDetail: React.FC = () => {
           latestData = {
             ...data,
             deliveryStats: {
-              sent: stats.sent,
-              failed: stats.failed
+              sent:   stats.sent,
+              opened: stats.opened ?? 0,
+              failed: stats.failed,
             },
             audienceSize: stats.audienceSize
           };
-          
+
           // Check if campaign should be marked completed based on stats
-          const totalProcessed = stats.sent + stats.failed;
+          const totalProcessed = stats.sent + (stats.opened ?? 0) + stats.failed;
           const isCompleted = totalProcessed >= stats.audienceSize && stats.audienceSize > 0;
           
           if (isCompleted && latestData.status === 'active') {
@@ -181,14 +203,15 @@ const CampaignDetail: React.FC = () => {
         // Store the stats reference for comparison
         if (latestData.deliveryStats) {
           lastStatsRef.current = {
-            sent: latestData.deliveryStats.sent,
-            failed: latestData.deliveryStats.failed
+            sent:   latestData.deliveryStats.sent,
+            opened: latestData.deliveryStats.opened ?? 0,
+            failed: latestData.deliveryStats.failed,
           };
         }
-        
+
         // Only set up refresh interval if campaign is active and not all messages processed
         if (latestData.status === 'active') {
-          const totalProcessed = latestData.deliveryStats.sent + latestData.deliveryStats.failed;
+          const totalProcessed = latestData.deliveryStats.sent + (latestData.deliveryStats.opened ?? 0) + latestData.deliveryStats.failed;
           if (totalProcessed < latestData.audienceSize) {
             setupRefreshInterval();
           }
@@ -219,6 +242,26 @@ const CampaignDetail: React.FC = () => {
     }, 3000);
   };
   
+  const startJobPolling = (campaignId: string) => {
+    if (jobPollRef.current) clearInterval(jobPollRef.current);
+    jobPollRef.current = window.setInterval(async () => {
+      if (!mountedRef.current) return;
+      try {
+        const latestJob = await CampaignService.getJobStatus(campaignId);
+        if (!mountedRef.current) return;
+        setJob(latestJob);
+        if (latestJob.status === 'completed' || latestJob.status === 'failed') {
+          clearInterval(jobPollRef.current!);
+          jobPollRef.current = null;
+          // Refresh campaign data to get final status
+          setTimeout(() => { if (mountedRef.current) fetchCampaign(); }, 500);
+        }
+      } catch {
+        // job endpoint returns 404 if no job yet — safe to ignore
+      }
+    }, 1500);
+  };
+
   // Helper function to update campaign status in the backend if needed
   const updateCampaignStatusIfNeeded = async (campaignId: string, newStatus: string) => {
     // This would require a new endpoint in your API, or you could handle it
@@ -229,8 +272,8 @@ const CampaignDetail: React.FC = () => {
   };
 
   // More accurate function to determine campaign completion status
-  const checkCampaignCompletion = (stats: { sent: number; failed: number; audienceSize: number }) => {
-    const totalProcessed = stats.sent + stats.failed;
+  const checkCampaignCompletion = (stats: { sent: number; opened?: number; failed: number; audienceSize: number }) => {
+    const totalProcessed = stats.sent + (stats.opened ?? 0) + stats.failed;
     return totalProcessed >= stats.audienceSize && stats.audienceSize > 0;
   };
 
@@ -255,7 +298,8 @@ const CampaignDetail: React.FC = () => {
 
       // Compare with last stats to detect changes
       const statsChanged =
-        stats.sent !== lastStatsRef.current.sent ||
+        stats.sent   !== lastStatsRef.current.sent   ||
+        (stats.opened ?? 0) !== lastStatsRef.current.opened ||
         stats.failed !== lastStatsRef.current.failed;
 
       if (statsChanged) {
@@ -276,19 +320,21 @@ const CampaignDetail: React.FC = () => {
         return {
           ...prevCampaign,
           deliveryStats: {
-            sent: stats.sent,
+            sent:   stats.sent,
+            opened: stats.opened ?? 0,
             failed: stats.failed,
           },
           audienceSize: stats.audienceSize,
-          status: isCompleted && prevCampaign.status === 'active' 
-            ? 'completed' 
+          status: isCompleted && prevCampaign.status === 'active'
+            ? 'completed'
             : prevCampaign.status
         };
       });
 
       // Store current stats for next comparison
       lastStatsRef.current = {
-        sent: stats.sent,
+        sent:   stats.sent,
+        opened: stats.opened ?? 0,
         failed: stats.failed,
       };
 
@@ -338,20 +384,22 @@ const CampaignDetail: React.FC = () => {
     try {
       setActivating(true);
       const result = await CampaignService.activateCampaign(campaign._id);
-      
+
       toast({
-        title: 'Campaign activated',
-        description: `Messages are being sent to ${result.audienceSize} customers`,
-        status: 'success',
+        title: 'Campaign queued',
+        description: 'Delivery is running in the background. Progress will update automatically.',
+        status: 'info',
         duration: 5000,
         isClosable: true,
       });
-      
-      // Fetch updated campaign data
-      fetchCampaign();
+
+      // Optimistically update status and start polling
+      setCampaign(prev => prev ? { ...prev, status: 'queued' } : prev);
+      startJobPolling(campaign._id);
     } catch (err) {
       console.error('Error activating campaign:', err);
       setError('Failed to activate campaign');
+    } finally {
       setActivating(false);
     }
   };
@@ -359,16 +407,12 @@ const CampaignDetail: React.FC = () => {
   // Helper functions for UI
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'green';
-      case 'draft':
-        return 'blue';
-      case 'completed':
-        return 'teal';
-      case 'cancelled':
-        return 'red';
-      default:
-        return 'gray';
+      case 'active':    return 'green';
+      case 'queued':    return 'orange';
+      case 'draft':     return 'blue';
+      case 'completed': return 'teal';
+      case 'cancelled': return 'red';
+      default:          return 'gray';
     }
   };
 
@@ -389,23 +433,29 @@ const CampaignDetail: React.FC = () => {
     if (!campaign) return 0;
     const { audienceSize, deliveryStats } = campaign;
     if (audienceSize === 0) return 0;
-    return ((deliveryStats.sent + deliveryStats.failed) / audienceSize) * 100;
+    return ((deliveryStats.sent + (deliveryStats.opened ?? 0) + deliveryStats.failed) / audienceSize) * 100;
   };
 
   const renderChartData = () => {
     if (!campaign) return null;
-    
+
+    const opened     = campaign.deliveryStats.opened ?? 0;
+    const dispatched = campaign.deliveryStats.sent;   // SMTP accepted, inbox delivery unconfirmed
+    const failed     = campaign.deliveryStats.failed;
+
     const data = {
-      labels: ['Sent', 'Failed'],
+      labels: ['Opened', 'Dispatched', 'Failed'],
       datasets: [
         {
-          label: 'Message Delivery',
-          data: [campaign.deliveryStats.sent, campaign.deliveryStats.failed],
+          label: 'Email Engagement',
+          data: [opened, dispatched, failed],
           backgroundColor: [
-            'rgba(54, 162, 235, 0.6)',
-            'rgba(255, 99, 132, 0.6)',
+            'rgba(56, 161, 105, 0.7)',   // green — confirmed opened
+            'rgba(54, 162, 235, 0.6)',   // blue  — SMTP accepted, not yet opened
+            'rgba(255, 99, 132, 0.6)',   // red   — SMTP rejected
           ],
           borderColor: [
+            'rgba(56, 161, 105, 1)',
             'rgba(54, 162, 235, 1)',
             'rgba(255, 99, 132, 1)',
           ],
@@ -488,12 +538,17 @@ const CampaignDetail: React.FC = () => {
           </Button>
 
           {campaign.status === 'draft' && (
-            <Button 
-              colorScheme="green" 
+            <Button
+              colorScheme="green"
               onClick={activateCampaign}
               isLoading={activating}
             >
               Activate Campaign
+            </Button>
+          )}
+          {campaign.status === 'queued' && (
+            <Button colorScheme="orange" isLoading leftIcon={<Spinner size="xs" />} isDisabled>
+              Queued…
             </Button>
           )}
         </Flex>
@@ -503,10 +558,11 @@ const CampaignDetail: React.FC = () => {
           {campaign.description && (
             <Text color="gray.600" mb={4}>{campaign.description}</Text>
           )}
-          <HStack spacing={4}>
+          <HStack spacing={4} flexWrap="wrap">
             <Badge colorScheme={getStatusColor(campaign.status)} fontSize="md" px={2}>
               {campaign.status.toUpperCase()}
             </Badge>
+            {campaign.isAbTest && <Badge colorScheme="purple" fontSize="sm" px={2}>A/B TEST</Badge>}
             <Text fontSize="sm">
               Created on {new Date(campaign.createdAt).toLocaleDateString()}
             </Text>
@@ -516,13 +572,32 @@ const CampaignDetail: React.FC = () => {
         {/* Campaign Progress */}
         <Card mb={6}>
           <CardHeader pb={0}>
-            <Heading size="md">Campaign Progress</Heading>
+            <Flex justify="space-between" align="center">
+              <Heading size="md">Campaign Progress</Heading>
+              {(campaign.status === 'queued' || (job && job.status === 'processing')) && (
+                <HStack spacing={2}>
+                  <Spinner size="sm" color="orange.400" />
+                  <Text fontSize="sm" color="orange.500" fontWeight="medium">
+                    {campaign.status === 'queued' && (!job || job.status === 'queued')
+                      ? 'Waiting in queue…'
+                      : job
+                        ? `Sending ${job.processed} / ${job.total || '?'}…`
+                        : 'Processing…'}
+                  </Text>
+                </HStack>
+              )}
+            </Flex>
           </CardHeader>
           <CardBody>
-            <Progress 
-              value={getProgressPercentage()} 
-              size="lg" 
-              colorScheme="teal"
+            <Progress
+              value={
+                job && job.total > 0
+                  ? (job.processed / job.total) * 100
+                  : getProgressPercentage()
+              }
+              size="lg"
+              colorScheme={campaign.status === 'queued' ? 'orange' : 'teal'}
+              isIndeterminate={campaign.status === 'queued' && (!job || job.total === 0)}
               mb={4}
             />
             <Grid templateColumns="repeat(3, 1fr)" gap={4}>
@@ -555,6 +630,65 @@ const CampaignDetail: React.FC = () => {
           </CardBody>
         </Card>
 
+        {/* A/B Comparison Card */}
+        {campaign.isAbTest && campaign.variants && campaign.variants.length >= 2 && (
+          <Card mb={6} borderWidth={2} borderColor="purple.200">
+            <CardHeader pb={0}>
+              <Flex align="center" gap={3}>
+                <Heading size="md">A/B Test Results</Heading>
+                <Badge colorScheme="purple">SPLIT TEST</Badge>
+                {(() => {
+                  const a = campaign.variants![0];
+                  const b = campaign.variants![1];
+                  const rateA = a.deliveryStats.sent + a.deliveryStats.failed > 0
+                    ? a.deliveryStats.sent / (a.deliveryStats.sent + a.deliveryStats.failed) : 0;
+                  const rateB = b.deliveryStats.sent + b.deliveryStats.failed > 0
+                    ? b.deliveryStats.sent / (b.deliveryStats.sent + b.deliveryStats.failed) : 0;
+                  if (rateA === 0 && rateB === 0) return null;
+                  const winner = rateA >= rateB ? 'A' : 'B';
+                  return <Badge colorScheme="green" ml="auto">Variant {winner} winning</Badge>;
+                })()}
+              </Flex>
+            </CardHeader>
+            <CardBody>
+              <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
+                {campaign.variants!.map(v => {
+                  const total = v.deliveryStats.sent + v.deliveryStats.failed;
+                  const rate = total > 0 ? Math.round((v.deliveryStats.sent / total) * 100) : 0;
+                  const color = v.label === 'A' ? 'blue' : 'purple';
+                  return (
+                    <Box key={v.label} borderWidth={1} borderRadius="lg" p={4} borderColor={`${color}.200`} bg={`${color}.50`}>
+                      <HStack mb={3}>
+                        <Badge colorScheme={color} fontSize="md" px={2}>Variant {v.label}</Badge>
+                        <Text fontSize="sm" color="gray.500">{v.audienceSize} customers</Text>
+                      </HStack>
+                      <Stack spacing={2}>
+                        <Flex justify="space-between">
+                          <Text fontSize="sm" color="gray.600">Sent</Text>
+                          <Text fontWeight="bold" color="green.600">{v.deliveryStats.sent}</Text>
+                        </Flex>
+                        <Flex justify="space-between">
+                          <Text fontSize="sm" color="gray.600">Failed</Text>
+                          <Text fontWeight="bold" color="red.500">{v.deliveryStats.failed}</Text>
+                        </Flex>
+                        <Flex justify="space-between">
+                          <Text fontSize="sm" color="gray.600">Success rate</Text>
+                          <Text fontWeight="bold" color={`${color}.600`}>{rate}%</Text>
+                        </Flex>
+                      </Stack>
+                      <Progress value={rate} colorScheme={color} size="sm" mt={3} borderRadius="full" />
+                      <Box mt={3} p={3} bg="white" borderRadius="md" borderWidth={1} borderColor={`${color}.100`}>
+                        <Text fontSize="xs" color="gray.500" mb={1} fontWeight="semibold">MESSAGE</Text>
+                        <Text fontSize="sm" noOfLines={3}>{v.message}</Text>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Grid>
+            </CardBody>
+          </Card>
+        )}
+
         <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={6} mb={6}>
           {/* Delivery Chart */}
           <GridItem>
@@ -562,8 +696,24 @@ const CampaignDetail: React.FC = () => {
               <CardHeader pb={0}>
                 <Heading size="md">Delivery Statistics</Heading>
               </CardHeader>
-              <CardBody height="300px">
-                {chartData && <Bar data={chartData.data} options={chartData.options} />}
+              <CardBody>
+                <Box height="260px">
+                  {chartData && <Bar data={chartData.data} options={chartData.options} />}
+                </Box>
+                <Stack spacing={1} mt={3} pt={3} borderTopWidth="1px" borderColor="gray.100">
+                  <HStack spacing={2} align="flex-start">
+                    <Box w={3} h={3} borderRadius="sm" bg="green.400" flexShrink={0} mt="3px" />
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Opened</Text> — recipient opened the email (tracking pixel confirmed)</Text>
+                  </HStack>
+                  <HStack spacing={2} align="flex-start">
+                    <Box w={3} h={3} borderRadius="sm" bg="blue.400" flexShrink={0} mt="3px" />
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Dispatched</Text> — accepted by Gmail SMTP, but inbox delivery is unconfirmed (may be in spam)</Text>
+                  </HStack>
+                  <HStack spacing={2} align="flex-start">
+                    <Box w={3} h={3} borderRadius="sm" bg="red.400" flexShrink={0} mt="3px" />
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Failed</Text> — SMTP rejected the email (invalid address or server error)</Text>
+                  </HStack>
+                </Stack>
               </CardBody>
             </Card>
           </GridItem>

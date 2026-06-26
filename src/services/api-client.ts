@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Use a default value if the environment variable is not set
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+if (!process.env.REACT_APP_API_URL) {
+    console.error('REACT_APP_API_URL is not set. API calls will fail.');
+}
+
+const API_URL = process.env.REACT_APP_API_URL ?? '';
 
 const apiClient = axios.create({
     baseURL: `${API_URL}/api`,  // Added /api prefix to all requests

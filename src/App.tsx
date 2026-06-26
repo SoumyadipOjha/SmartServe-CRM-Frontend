@@ -14,6 +14,8 @@ const Customers = React.lazy(() => import('./pages/Customers'));
 const Orders = React.lazy(() => import('./pages/Orders'));
 const Campaigns = React.lazy(() => import('./pages/Campaigns'));
 const CampaignDetail = React.lazy(() => import('./pages/CampaignDetail'));
+const CustomerProfile = React.lazy(() => import('./pages/CustomerProfile'));
+const Segments = React.lazy(() => import('./pages/Segments'));
 const AuthCallbackPage = React.lazy(() => import('./pages/AuthCallback'));
 
 // Create a client
@@ -82,6 +84,24 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              {/* Customer profile route */}
+              <Route path="/customers/:id" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="customer profile" />}>
+                    <CustomerProfile />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
+              {/* Segments */}
+              <Route path="/segments" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="segments" />}>
+                    <Segments />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
               {/* Order routes */}
               <Route path="/orders" element={
                 <ProtectedRoute>

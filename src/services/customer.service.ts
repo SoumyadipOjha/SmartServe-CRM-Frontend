@@ -1,5 +1,5 @@
 import apiClient from './api-client';
-import { Customer } from '../types/models';
+import { Customer, CustomerProfile } from '../types/models';
 
 const CustomerService = {
     /**
@@ -40,6 +40,14 @@ const CustomerService = {
     updateCustomer: async (id: string, customerData: Partial<Customer>): Promise<Customer> => {
         const response = await apiClient.put<{ customer: Customer, message: string }>(`/customers/${id}`, customerData);
         return response.data.customer;
+    },
+
+    /**
+     * Get full 360 profile for a customer
+     */
+    getCustomerProfile: async (id: string): Promise<CustomerProfile> => {
+        const response = await apiClient.get<CustomerProfile>(`/customers/${id}/profile`);
+        return response.data;
     },
 
     /**

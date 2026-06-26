@@ -1,11 +1,13 @@
 import apiClient from './api-client';
-import { Campaign, CampaignRules } from '../types/models';
+import { Campaign, CampaignRules, CampaignJob } from '../types/models';
 
 interface CampaignCreateData {
     name: string;
     description?: string;
     rules: CampaignRules;
     message: string;
+    isAbTest?: boolean;
+    variantBMessage?: string;
 }
 
 const CampaignService = {
@@ -35,24 +37,24 @@ const CampaignService = {
      */
     createCampaign: async (campaignData: CampaignCreateData): Promise<Campaign> => {
         // Format and sanitize the campaign data before sending
-        const sanitizedData = {
+        const sanitizedData: any = {
             ...campaignData,
-            // Ensure rules are properly formatted
             rules: {
-                // Fix capitalization - ensure condition is always uppercase 'AND' or 'OR'
                 condition: campaignData.rules.condition.toUpperCase() as 'AND' | 'OR',
                 conditions: campaignData.rules.conditions.map(condition => ({
                     field: condition.field,
                     operator: condition.operator,
-                    // Convert numeric values to actual numbers if needed
-                    value: ['totalSpend', 'visits'].includes(condition.field) && 
-                           typeof condition.value === 'string' ? 
+                    value: ['totalSpend', 'visits'].includes(condition.field) &&
+                           typeof condition.value === 'string' ?
                            Number(condition.value) : condition.value
                 }))
             },
-            // Trim any excessive whitespace in the message
-            message: campaignData.message.trim()
+            message: campaignData.message.trim(),
         };
+        if (campaignData.isAbTest && campaignData.variantBMessage) {
+            sanitizedData.isAbTest = true;
+            sanitizedData.variantBMessage = campaignData.variantBMessage.trim();
+        }
         
         console.log('Sending sanitized campaign data:', sanitizedData);
         
@@ -70,9 +72,14 @@ const CampaignService = {
      * @param id Campaign ID
      * @returns Promise with activated campaign
      */
-    activateCampaign: async (id: string): Promise<{ message: string, audienceSize: number }> => {
-        const response = await apiClient.post<{ message: string, audienceSize: number }>(`/campaigns/${id}/activate`);
+    activateCampaign: async (id: string): Promise<{ message: string; jobId: string; campaignId: string }> => {
+        const response = await apiClient.post<{ message: string; jobId: string; campaignId: string }>(`/campaigns/${id}/activate`);
         return response.data;
+    },
+
+    getJobStatus: async (campaignId: string): Promise<CampaignJob> => {
+        const response = await apiClient.get<{ job: CampaignJob }>(`/campaigns/${campaignId}/job`);
+        return response.data.job;
     },
 
     /**
@@ -82,11 +89,18 @@ const CampaignService = {
      */
     getCampaignStats: async (id: string): Promise<{
         sent: number;
+        opened: number;
         failed: number;
         audienceSize: number;
+        isAbTest?: boolean;
+        variants?: { label: string; audienceSize: number; sent: number; opened: number; failed: number }[];
     }> => {
         const response = await apiClient.get<{
-            stats: { sent: number; failed: number; audienceSize: number }
+            stats: {
+                sent: number; opened: number; failed: number; audienceSize: number;
+                isAbTest?: boolean;
+                variants?: { label: string; audienceSize: number; sent: number; opened: number; failed: number }[];
+            }
         }>(`/campaigns/${id}/stats`);
         return response.data.stats;
     },
@@ -96,21 +110,26 @@ const CampaignService = {
      * @param rules Campaign rules
      * @returns Promise with audience count
      */
-    previewAudience: async (rules: CampaignRules): Promise<number> => {
-        // Format rules the same way as in createCampaign for consistency
+    previewAudience: async (rules: CampaignRules): Promise<{
+        count: number;
+        audience: { _id: string; name: string; email: string }[];
+    }> => {
         const sanitizedRules = {
             condition: rules.condition.toUpperCase() as 'AND' | 'OR',
             conditions: rules.conditions.map(condition => ({
                 field: condition.field,
                 operator: condition.operator,
-                value: ['totalSpend', 'visits'].includes(condition.field) && 
-                       typeof condition.value === 'string' ? 
+                value: ['totalSpend', 'visits'].includes(condition.field) &&
+                       typeof condition.value === 'string' ?
                        Number(condition.value) : condition.value
             }))
         };
-        
-        const response = await apiClient.post<{ audienceCount: number }>('/campaigns/preview', { rules: sanitizedRules });
-        return response.data.audienceCount;
+
+        const response = await apiClient.post<{
+            audienceCount: number;
+            audience: { _id: string; name: string; email: string }[];
+        }>('/campaigns/preview', { rules: sanitizedRules });
+        return { count: response.data.audienceCount, audience: response.data.audience ?? [] };
     }
 };
 

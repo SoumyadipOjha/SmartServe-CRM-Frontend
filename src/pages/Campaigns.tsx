@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -19,8 +19,14 @@ import {
   HStack,
   Spinner,
   Stack,
-  useBreakpointValue
+  useBreakpointValue,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Select,
 } from '@chakra-ui/react';
+import { SearchIcon } from '@chakra-ui/icons';
+import Pagination from '../components/Pagination';
 import * as XLSX from 'xlsx';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
@@ -28,6 +34,15 @@ import Layout from '../components/Layout';
 import CampaignService from '../services/campaign.service';
 import { Campaign } from '../types/models';
 import CreateCampaign from './CreateCampaign';
+
+const PAGE_SIZE = 10;
+type CampaignSortField = 'name' | 'audienceSize' | 'createdAt';
+type SortDir = 'asc' | 'desc';
+
+function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) return <Text as="span" color="gray.300" ml={1}>↕</Text>;
+  return <Text as="span" ml={1}>{dir === 'asc' ? '↑' : '↓'}</Text>;
+}
 
 const Campaigns: React.FC = () => {
   const navigate = useNavigate();
@@ -41,6 +56,47 @@ const Campaigns: React.FC = () => {
   const refreshTimerRef = useRef<number | null>(null);
   const mountedRef = useRef<boolean>(true);
   const lastRefreshTimeRef = useRef<number>(0);
+
+  // Search / filter / sort / page
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortField, setSortField] = useState<CampaignSortField>('createdAt');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(1);
+
+  const handleCampaignSort = (field: CampaignSortField) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+    setPage(1);
+  };
+
+  const filteredCampaigns = useMemo(() => {
+    let list = [...campaigns];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c => c.name.toLowerCase().includes(q));
+    }
+    if (statusFilter) {
+      list = list.filter(c => c.status === statusFilter);
+    }
+    list.sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      switch (sortField) {
+        case 'name':        return dir * a.name.localeCompare(b.name);
+        case 'audienceSize': return dir * (a.audienceSize - b.audienceSize);
+        case 'createdAt':   return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        default: return 0;
+      }
+    });
+    return list;
+  }, [campaigns, search, statusFilter, sortField, sortDir]);
+
+  const campaignTotalPages = Math.max(1, Math.ceil(filteredCampaigns.length / PAGE_SIZE));
+  const paginatedCampaigns = filteredCampaigns.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const hasActiveCampaigns = campaigns.some(c => c.status === 'active');
 
@@ -63,14 +119,15 @@ const Campaigns: React.FC = () => {
               if (campaign.status === 'active' || campaign.audienceSize > 0) {
                 const stats = await CampaignService.getCampaignStats(campaign._id);
 
-                const totalProcessed = stats.sent + stats.failed;
+                const totalProcessed = stats.sent + (stats.opened ?? 0) + stats.failed;
                 const isCompleted = totalProcessed >= stats.audienceSize && stats.audienceSize > 0;
 
                 return {
                   ...campaign,
                   deliveryStats: {
-                    sent: stats.sent,
-                    failed: stats.failed
+                    sent:   stats.sent,
+                    opened: stats.opened ?? 0,
+                    failed: stats.failed,
                   },
                   audienceSize: stats.audienceSize,
                   status: isCompleted && campaign.status === 'active' ? 'completed' : campaign.status
@@ -126,7 +183,8 @@ const Campaigns: React.FC = () => {
             const stats = await CampaignService.getCampaignStats(campaign._id);
             return {
               id: campaign._id,
-              sent: stats.sent,
+              sent:   stats.sent,
+              opened: stats.opened ?? 0,
               failed: stats.failed,
               audienceSize: stats.audienceSize
             };
@@ -143,14 +201,15 @@ const Campaigns: React.FC = () => {
             const updatedStat = updatedStats.find(s => s && s.id === campaign._id);
 
             if (updatedStat) {
-              const totalProcessed = updatedStat.sent + updatedStat.failed;
+              const totalProcessed = updatedStat.sent + (updatedStat.opened ?? 0) + updatedStat.failed;
               const isCompleted = totalProcessed >= updatedStat.audienceSize && updatedStat.audienceSize > 0;
 
               return {
                 ...campaign,
                 deliveryStats: {
-                  sent: updatedStat.sent,
-                  failed: updatedStat.failed
+                  sent:   updatedStat.sent,
+                  opened: (updatedStat as any).opened ?? 0,
+                  failed: updatedStat.failed,
                 },
                 audienceSize: updatedStat.audienceSize,
                 status: isCompleted ? 'completed' : campaign.status
@@ -207,16 +266,12 @@ const Campaigns: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'green';
-      case 'draft':
-        return 'blue';
-      case 'completed':
-        return 'teal';
-      case 'cancelled':
-        return 'red';
-      default:
-        return 'gray';
+      case 'active':    return 'green';
+      case 'queued':    return 'orange';
+      case 'draft':     return 'blue';
+      case 'completed': return 'teal';
+      case 'cancelled': return 'red';
+      default:          return 'gray';
     }
   };
 
@@ -322,12 +377,41 @@ const Campaigns: React.FC = () => {
           </Alert>
         )}
 
+        {/* Search + filter row */}
+        <Flex mb={4} gap={3} flexWrap="wrap">
+          <InputGroup maxW="280px">
+            <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
+            <Input
+              placeholder="Search campaigns…"
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+            />
+          </InputGroup>
+          <Select
+            maxW="180px"
+            placeholder="All statuses"
+            value={statusFilter}
+            onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+          >
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </Select>
+          {(search || statusFilter) && (
+            <Text fontSize="sm" color="gray.500" alignSelf="center">
+              {filteredCampaigns.length} result{filteredCampaigns.length !== 1 ? 's' : ''}
+            </Text>
+          )}
+        </Flex>
+
         {loading ? (
           <Box textAlign="center" py={8}>
             <Spinner size="xl" mb={4} color="teal.500" />
             <Text>Loading campaigns...</Text>
           </Box>
         ) : (
+          <>
           <Box overflowX="auto">
             {loadingStats && (
               <Box textAlign="center" mb={4}>
@@ -339,21 +423,27 @@ const Campaigns: React.FC = () => {
             <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
               <Thead>
                 <Tr>
-                  <Th>Campaign Name</Th>
+                  <Th cursor="pointer" userSelect="none" _hover={{ bg: 'gray.50' }} onClick={() => handleCampaignSort('name')}>
+                    Campaign Name <SortIndicator active={sortField === 'name'} dir={sortDir} />
+                  </Th>
                   <Th>Status</Th>
-                  <Th>Audience Size</Th>
+                  <Th cursor="pointer" userSelect="none" _hover={{ bg: 'gray.50' }} onClick={() => handleCampaignSort('audienceSize')}>
+                    Audience Size <SortIndicator active={sortField === 'audienceSize'} dir={sortDir} />
+                  </Th>
                   <Th>Delivery Progress</Th>
                   <Th>Success Rate</Th>
-                  <Th>Created</Th>
+                  <Th cursor="pointer" userSelect="none" _hover={{ bg: 'gray.50' }} onClick={() => handleCampaignSort('createdAt')}>
+                    Created <SortIndicator active={sortField === 'createdAt'} dir={sortDir} />
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
-                {campaigns.length === 0 ? (
+                {paginatedCampaigns.length === 0 ? (
                   <Tr>
-                    <Td colSpan={6}>No campaigns found</Td>
+                    <Td colSpan={6}>{search || statusFilter ? 'No campaigns match your filters' : 'No campaigns found'}</Td>
                   </Tr>
                 ) : (
-                  campaigns.map((campaign) => (
+                  paginatedCampaigns.map((campaign) => (
                     <Tr key={campaign._id}>
                       <Td>
                         <Text
@@ -364,6 +454,7 @@ const Campaigns: React.FC = () => {
                         >
                           {campaign.name}
                         </Text>
+                        {campaign.isAbTest && <Badge colorScheme="purple" fontSize="xs" ml={1}>A/B</Badge>}
                         {campaign.description && (
                           <Text fontSize="sm" color="gray.600" noOfLines={1}>
                             {campaign.description}
@@ -396,6 +487,14 @@ const Campaigns: React.FC = () => {
               </Tbody>
             </Table>
           </Box>
+          <Pagination
+            page={page}
+            totalPages={campaignTotalPages}
+            totalItems={filteredCampaigns.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+          </>
         )}
       </Box>
     </Layout>

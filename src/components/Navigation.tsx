@@ -24,14 +24,17 @@ import {
   Tooltip,
   Heading
 } from '@chakra-ui/react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiPlus } from 'react-icons/fi';
+import { FiMenu, FiHome, FiUsers, FiShoppingCart, FiMail, FiPlus, FiBookmark, FiArrowLeft } from 'react-icons/fi';
 
 const Navigation: React.FC = () => {
   const { currentUser, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const canGoBack = window.history.length > 1 && location.pathname !== '/';
   const [mobileView, setMobileView] = useState(false);
 
   // Colors
@@ -50,7 +53,8 @@ const Navigation: React.FC = () => {
     { name: 'Dashboard', path: '/', icon: <FiHome /> },
     { name: 'Customers', path: '/customers', icon: <FiUsers /> },
     { name: 'Orders', path: '/orders', icon: <FiShoppingCart /> },
-    { name: 'Campaigns', path: '/campaigns', icon: <FiMail /> }
+    { name: 'Campaigns', path: '/campaigns', icon: <FiMail /> },
+    { name: 'Segments', path: '/segments', icon: <FiBookmark /> },
   ];
 
   // Mobile navigation
@@ -66,13 +70,25 @@ const Navigation: React.FC = () => {
       borderColor={borderColor}
       shadow="sm"
     >
-      <IconButton
-        aria-label="Open menu"
-        icon={<FiMenu />}
-        variant="ghost"
-        onClick={onOpen}
-      />
-      <Text fontSize="lg" fontWeight="bold" color={activeColor}>Mini CRM</Text>
+      <HStack spacing={1}>
+        <IconButton
+          aria-label="Open menu"
+          icon={<FiMenu />}
+          variant="ghost"
+          onClick={onOpen}
+        />
+        {canGoBack && (
+          <IconButton
+            aria-label="Go back"
+            icon={<FiArrowLeft />}
+            variant="ghost"
+            size="sm"
+            color="gray.500"
+            onClick={() => navigate(-1)}
+          />
+        )}
+      </HStack>
+      <Text fontSize="lg" fontWeight="bold" color={activeColor}>Flayx</Text>
       {currentUser && (
         <Menu>
           <MenuButton as={Button} rounded="full" variant="link" cursor="pointer">
@@ -108,7 +124,7 @@ const Navigation: React.FC = () => {
     >
       <Flex px="4" py="5" align="center">
         <Text fontSize="2xl" fontWeight="bold" color={activeColor}>
-          Mini CRM
+          Flayx
         </Text>
       </Flex>
       <Flex
@@ -206,7 +222,7 @@ const Navigation: React.FC = () => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader borderBottomWidth="1px">Mini CRM</DrawerHeader>
+          <DrawerHeader borderBottomWidth="1px">Flayx</DrawerHeader>
           <DrawerBody p="0">
             <VStack align="stretch" spacing="0">
               {navLinks.map((link) => (

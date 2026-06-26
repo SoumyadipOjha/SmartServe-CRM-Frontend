@@ -38,6 +38,17 @@ export interface CampaignRules {
     condition: 'AND' | 'OR';
 }
 
+export interface CampaignVariant {
+    label: 'A' | 'B';
+    message: string;
+    audienceSize: number;
+    deliveryStats: {
+        sent: number;
+        opened: number;
+        failed: number;
+    };
+}
+
 export interface Campaign {
     _id: string;
     name: string;
@@ -48,9 +59,12 @@ export interface Campaign {
     audienceSize: number;
     deliveryStats: {
         sent: number;
+        opened: number;
         failed: number;
     };
-    status: 'draft' | 'active' | 'completed' | 'cancelled';
+    status: 'draft' | 'queued' | 'active' | 'completed' | 'cancelled';
+    isAbTest?: boolean;
+    variants?: CampaignVariant[];
     createdBy: string | User;
     createdAt: Date;
     updatedAt: Date;
@@ -66,6 +80,48 @@ export interface CommunicationLog {
     sentAt: Date;
     createdAt: Date;
     updatedAt: Date;
+}
+
+export interface Segment {
+    _id: string;
+    name: string;
+    description?: string;
+    tags: string[];
+    rules: CampaignRules;
+    exclusions: RuleCondition[];
+    createdBy: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface SegmentPreview {
+    count: number;
+    samples: { _id: string; name: string; email: string }[];
+    excludedCount: number;
+}
+
+export interface CampaignJob {
+    jobId: string;
+    campaignId: string;
+    status: 'queued' | 'processing' | 'completed' | 'failed';
+    processed: number;
+    total: number;
+    error: string | null;
+    createdAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+}
+
+export interface CustomerProfile {
+    customer: Customer;
+    orders: Order[];
+    communicationLogs: CommunicationLog[];
+    stats: {
+        orderCount: number;
+        daysSinceLastActivity: number;
+        avgOrderValue: number;
+        healthStatus: 'active' | 'at_risk' | 'dormant';
+    };
 }
 
 export interface User {
