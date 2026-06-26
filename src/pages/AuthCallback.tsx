@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Center, Spinner, Text, VStack, Alert, AlertIcon } from '@chakra-ui/react';
+import { Center, Spinner, Text, VStack, Alert, AlertIcon } from '@chakra-ui/react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 

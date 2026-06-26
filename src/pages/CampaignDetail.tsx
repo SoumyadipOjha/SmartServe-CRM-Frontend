@@ -13,7 +13,6 @@ import {
   StatNumber,
   StatHelpText,
   Flex,
-  Divider,
   Alert,
   AlertTitle,
   AlertDescription,
@@ -90,6 +89,7 @@ const CampaignDetail: React.FC = () => {
         jobPollRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -133,6 +133,7 @@ const CampaignDetail: React.FC = () => {
         }
       }, 3000);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign?.status, campaign?.audienceSize]);
 
   // Auto-start job polling when campaign enters queued/active state
@@ -147,6 +148,7 @@ const CampaignDetail: React.FC = () => {
         jobPollRef.current = null;
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign?.status]);
 
   const fetchCampaign = async () => {
@@ -383,7 +385,7 @@ const CampaignDetail: React.FC = () => {
 
     try {
       setActivating(true);
-      const result = await CampaignService.activateCampaign(campaign._id);
+      await CampaignService.activateCampaign(campaign._id);
 
       toast({
         title: 'Campaign queued',

@@ -4,7 +4,7 @@ import {
   IconButton, useDisclosure, Modal, ModalOverlay, ModalContent,
   ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl,
   FormLabel, Input, InputGroup, InputLeftElement, Stack, Text, Alert,
-  AlertIcon, AlertDescription, HStack, Select, useToast
+  AlertIcon, AlertDescription, HStack, useToast
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon, SearchIcon } from '@chakra-ui/icons';
 import { Link as RouterLink } from 'react-router-dom';

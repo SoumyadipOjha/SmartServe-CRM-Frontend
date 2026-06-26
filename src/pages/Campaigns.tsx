@@ -19,7 +19,6 @@ import {
   HStack,
   Spinner,
   Stack,
-  useBreakpointValue,
   Input,
   InputGroup,
   InputLeftElement,
@@ -28,7 +27,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import Pagination from '../components/Pagination';
 import * as XLSX from 'xlsx';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import Layout from '../components/Layout';
 import CampaignService from '../services/campaign.service';
@@ -45,7 +44,6 @@ function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 const Campaigns: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,6 +260,7 @@ const Campaigns: React.FC = () => {
         refreshTimerRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasActiveCampaigns, showCreateForm]);
 
   const getStatusColor = (status: string) => {

@@ -5,7 +5,7 @@ import {
   StatNumber, StatHelpText, Tag, Text, VStack, useColorModeValue,
 } from '@chakra-ui/react';
 import {
-  ArrowBackIcon, CalendarIcon, CheckCircleIcon, WarningIcon,
+  ArrowBackIcon, CalendarIcon, WarningIcon,
 } from '@chakra-ui/icons';
 import { MdEmail, MdPhone, MdShoppingBag, MdCampaign } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';

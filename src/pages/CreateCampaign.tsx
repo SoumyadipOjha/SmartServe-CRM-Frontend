@@ -13,7 +13,6 @@ import {
   VStack,
   HStack,
   Text,
-  Divider,
   Badge,
   Switch,
   Grid,
@@ -27,8 +26,6 @@ import {
   Tab,
   TabPanel,
   useToast,
-  Spinner,
-  Icon,
   useColorModeValue,
   Card,
   CardBody,
@@ -38,7 +35,6 @@ import {
   Progress,
   Tag,
   TagLabel,
-  TagCloseButton,
   Tooltip,
   Collapse,
   Skeleton
@@ -51,11 +47,10 @@ import AIService from '../services/ai.service';
 import { CampaignRules } from '../types/models';
 import { IconWrapper } from '../utils/icon-wrapper';
 import { 
-  FiUsers, 
-  FiMessageSquare, 
-  FiInfo, 
-  FiCheckCircle, 
-  FiSettings, 
+  FiUsers,
+  FiMessageSquare,
+  FiInfo,
+  FiCheckCircle,
   FiTarget,
   FiRefreshCw,
   FiWind,
@@ -87,11 +82,9 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
   // Color scheme
   const cardBg = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const textColor = useColorModeValue('gray.700', 'gray.200');
   const subtleText = useColorModeValue('gray.600', 'gray.400');
   const highlightBg = useColorModeValue('teal.50', 'teal.900');
   const highlightBorder = useColorModeValue('teal.200', 'teal.700');
-  const tabSelectedBg = useColorModeValue('white', 'gray.700');
 
   // Form state
   const [formData, setFormData] = useState({

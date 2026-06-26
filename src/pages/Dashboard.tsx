@@ -61,7 +61,6 @@ const Dashboard: React.FC = () => {
   const esRef = useRef<EventSource | null>(null);
 
   const cardBg      = useColorModeValue('white', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
   const textColor   = useColorModeValue('gray.700', 'gray.200');
   const subtleText  = useColorModeValue('gray.500', 'gray.400');
   const successColor = useColorModeValue('teal.500', 'teal.300');
@@ -406,7 +405,6 @@ const Dashboard: React.FC = () => {
           <Stack spacing={4}>
             {recentCampaigns.length > 0 ? (
               recentCampaigns.map(campaign => {
-                const delivered = campaign.deliveryStats.sent + campaign.deliveryStats.failed;
                 const deliveryPct = campaign.audienceSize > 0
                   ? Math.round((campaign.deliveryStats.sent / campaign.audienceSize) * 100)
                   : 0;
