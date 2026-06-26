@@ -169,7 +169,7 @@ const Customers: React.FC = () => {
 
         {/* Search bar */}
         <Flex mb={4} gap={3} flexWrap="wrap">
-          <InputGroup maxW="320px">
+          <InputGroup flex={{ base: 1, md: 'none' }} maxW={{ base: '100%', md: '320px' }}>
             <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
             <Input
               placeholder="Search by name or email…"

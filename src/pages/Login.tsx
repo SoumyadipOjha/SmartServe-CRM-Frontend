@@ -12,24 +12,28 @@ import { useAuth } from '../context/AuthContext';
 
 const STEPS = [
   {
-    title: 'Import your customers',
-    desc: 'Connect existing data or start fresh. Contacts, orders, and activity in one clean view.',
+    title: 'Manage your customers',
+    desc: 'Contacts, orders, notes, tags, and custom fields — every detail in one timeline view.',
   },
   {
-    title: 'Build smart segments',
-    desc: 'Filter by spend, visits, or last activity. See exactly who qualifies before you hit send.',
+    title: 'Track deals & revenue',
+    desc: 'Drag deals through your pipeline. See weighted forecasts and win rates updated in real time.',
   },
   {
     title: 'Launch AI campaigns',
-    desc: 'AI writes personalised messages per segment. Track opens and run A/B tests automatically.',
+    desc: 'AI writes personalised messages per segment. Schedule delivery, track opens, and run A/B tests.',
   },
 ];
 
 const FEATURES = [
-  { title: 'Live analytics',  desc: 'Real-time dashboard that updates as emails open and campaigns run.' },
-  { title: 'Open tracking',   desc: 'Know who opened which email with per-customer tracking — not just totals.' },
-  { title: 'A/B testing',     desc: 'Two message variants, split 50 / 50 automatically across your audience.' },
-  { title: 'One-click send',  desc: 'Segment, preview, and fire a campaign to hundreds of customers in minutes.' },
+  { title: 'Deal Pipeline',       desc: 'Kanban board with drag-and-drop. Move deals from Lead → Won with stage-weighted forecasting.' },
+  { title: 'Revenue Forecasting', desc: '12-month revenue trend, 3-month projection, and win/loss ratios — all from your real data.' },
+  { title: 'Tasks & Reminders',   desc: 'Per-customer tasks with priority, due dates, and overdue alerts so nothing falls through.' },
+  { title: 'Custom Fields',       desc: 'Add your own fields (text, number, date, yes/no) to any customer profile.' },
+  { title: 'Email Tracking',      desc: 'Know exactly who opened and clicked — per email, per customer, not just aggregate totals.' },
+  { title: 'Campaign Scheduling', desc: 'Set a future send time and the scheduler fires it automatically — no manual follow-up needed.' },
+  { title: 'A/B Testing',         desc: 'Two message variants split 50/50 across your audience. Winner visible in the stats panel.' },
+  { title: 'AI Copywriting',      desc: 'Generate personalised campaign messages from your campaign name and description in one click.' },
 ];
 
 // ── App preview widget ────────────────────────────────────────────────────────
@@ -234,7 +238,7 @@ const Login: React.FC = () => {
               maxW="420px"
               lineHeight="1.8"
             >
-              Segment your audience, write AI-powered campaigns, and see who opens every email — all in one place.
+              Pipeline, forecasting, AI campaigns, tasks, and email tracking — everything a modern sales team needs, in one place.
             </Text>
 
             {/* Buttons — stack on small mobile, row on sm+ */}
@@ -407,24 +411,12 @@ const Login: React.FC = () => {
               {FEATURES.map((feat, i) => (
                 <Box
                   key={feat.title}
-                  p={{ base: 5, md: 7 }}
+                  p={{ base: 5, md: 6 }}
                   borderRight={{ base: 'none', md: i % 2 === 0 ? '1px solid' : 'none' }}
-                  borderBottom={
-                    // mobile (1-col): border under all except last item
-                    // desktop (2-col): border under top row only (i < 2)
-                    {
-                      base: i < FEATURES.length - 1 ? '1px solid' : 'none',
-                      md: i < 2 ? '1px solid' : 'none',
-                    }
-                  }
+                  borderBottom={i < FEATURES.length - (FEATURES.length % 2 === 0 ? 2 : 1) ? '1px solid' : 'none'}
                   borderColor="gray.200"
                 >
-                  <Text
-                    fontWeight="600"
-                    fontSize={{ base: 'sm', md: 'md' }}
-                    color="gray.800"
-                    mb={1.5}
-                  >
+                  <Text fontWeight="600" fontSize={{ base: 'sm', md: 'md' }} color="gray.800" mb={1.5}>
                     {feat.title}
                   </Text>
                   <Text fontSize={{ base: 'xs', md: 'sm' }} color="gray.500" lineHeight="1.8">
@@ -500,15 +492,15 @@ const Login: React.FC = () => {
                 </Button>
 
                 <Text fontSize="xs" color="gray.400" textAlign="center">
-                  Pre-loaded with 10 customers, orders &amp; campaigns
+                  Pre-loaded with customers, deals, orders &amp; campaigns
                 </Text>
               </VStack>
 
               <VStack spacing={2} w="full" align="flex-start">
                 {[
                   'No credit card required',
-                  'Real email sending via SMTP',
-                  'AI-written campaign messages',
+                  'Deal pipeline with revenue forecasting',
+                  'AI-written campaigns + email tracking',
                 ].map((item) => (
                   <HStack key={item} spacing={2}>
                     <Icon as={MdCheck} color="teal.500" boxSize="13px" flexShrink={0} />

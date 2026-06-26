@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Avatar, Badge, Box, Button, Checkbox, Divider, Flex, Grid, GridItem,
-  Heading, HStack, Icon, Input, Select, Spinner, Stack, Stat, StatLabel,
-  StatNumber, StatHelpText, Tag, TagLabel, TagCloseButton, Text,
-  Textarea, VStack, useColorModeValue, useToast,
+  Avatar, Badge, Box, Button, Checkbox, Divider, Flex, FormControl, FormLabel,
+  Grid, GridItem, Heading, HStack, Icon, Input, Select, Spinner, Stack,
+  Stat, StatLabel, StatNumber, StatHelpText, Tag, TagLabel, TagCloseButton,
+  Text, Textarea, VStack, useColorModeValue, useToast,
 } from '@chakra-ui/react';
 import {
   ArrowBackIcon, CalendarIcon, WarningIcon, AddIcon, DeleteIcon,
 } from '@chakra-ui/icons';
 import { MdEmail, MdPhone, MdShoppingBag, MdCampaign, MdStickyNote2 } from 'react-icons/md';
-import { FiTag, FiCheckSquare } from 'react-icons/fi';
+import { FiTag, FiCheckSquare, FiSliders } from 'react-icons/fi';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import CustomerService from '../services/customer.service';
 import TaskService from '../services/task.service';
+import CustomFieldService, { FieldDef } from '../services/custom-field.service';
 import { CustomerProfile as CustomerProfileType, Order, CommunicationLog, Note, Task } from '../types/models';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -415,6 +416,143 @@ function TasksPanel({ customerId }: { customerId: string }) {
   );
 }
 
+// ── Custom Fields Panel ───────────────────────────────────────────────────────
+
+function CustomFieldsPanel({ customerId, initialValues }: {
+  customerId: string;
+  initialValues: Record<string, unknown>;
+}) {
+  const [defs, setDefs]           = useState<FieldDef[]>([]);
+  const [values, setValues]       = useState<Record<string, string>>(
+    Object.fromEntries(Object.entries(initialValues).map(([k, v]) => [k, String(v ?? '')]))
+  );
+  const [newName, setNewName]     = useState('');
+  const [newType, setNewType]     = useState<FieldDef['fieldType']>('text');
+  const [saving, setSaving]       = useState(false);
+  const [addingDef, setAddingDef] = useState(false);
+  const [dirty, setDirty]         = useState(false);
+  const toast  = useToast();
+  const bg     = useColorModeValue('white', 'gray.700');
+  const muted  = useColorModeValue('gray.500', 'gray.400');
+
+  useEffect(() => {
+    CustomFieldService.getFieldDefs().then(setDefs)
+      .catch(() => toast({ title: 'Could not load custom fields', status: 'error', duration: 2000 }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (key: string, val: string) => {
+    setValues(prev => ({ ...prev, [key]: val }));
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await CustomFieldService.setCustomerFields(customerId, values);
+      setDirty(false);
+      toast({ title: 'Custom fields saved', status: 'success', duration: 2000 });
+    } catch {
+      toast({ title: 'Failed to save', status: 'error', duration: 2000 });
+    } finally { setSaving(false); }
+  };
+
+  const handleAddDef = async () => {
+    if (!newName.trim()) return;
+    setAddingDef(true);
+    try {
+      const def = await CustomFieldService.createFieldDef(newName.trim(), newType);
+      setDefs(prev => [...prev, def]);
+      setNewName(''); setNewType('text');
+    } catch {
+      toast({ title: 'Failed to create field', status: 'error', duration: 2000 });
+    } finally { setAddingDef(false); }
+  };
+
+  const handleDeleteDef = async (def: FieldDef) => {
+    try {
+      await CustomFieldService.deleteFieldDef(def._id);
+      setDefs(prev => prev.filter(d => d._id !== def._id));
+      setValues(prev => { const next = { ...prev }; delete next[def.key]; return next; });
+    } catch {
+      toast({ title: 'Failed to delete field', status: 'error', duration: 2000 });
+    }
+  };
+
+  return (
+    <Box>
+      <HStack mb={3} spacing={2}>
+        <Icon as={FiSliders} color="purple.500" />
+        <Heading size="sm">Custom Fields</Heading>
+      </HStack>
+
+      {defs.length === 0 && (
+        <Text fontSize="sm" color={muted} mb={3}>No custom fields yet — add one below</Text>
+      )}
+
+      <VStack align="stretch" spacing={3} mb={4}>
+        {defs.map(def => (
+          <FormControl key={def._id}>
+            <FormLabel fontSize="xs" color={muted} mb={1} display="flex" justifyContent="space-between">
+              <span>{def.name}</span>
+              <Button size="xs" variant="ghost" colorScheme="red" onClick={() => handleDeleteDef(def)}>
+                <Icon as={DeleteIcon} />
+              </Button>
+            </FormLabel>
+            {def.fieldType === 'boolean' ? (
+              <Select
+                size="sm" bg={bg}
+                value={values[def.key] ?? ''}
+                onChange={e => handleChange(def.key, e.target.value)}
+              >
+                <option value="">—</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </Select>
+            ) : (
+              <Input
+                size="sm" bg={bg}
+                type={def.fieldType === 'number' ? 'number' : def.fieldType === 'date' ? 'date' : 'text'}
+                value={values[def.key] ?? ''}
+                onChange={e => handleChange(def.key, e.target.value)}
+                placeholder={`Enter ${def.name.toLowerCase()}`}
+              />
+            )}
+          </FormControl>
+        ))}
+      </VStack>
+
+      {dirty && (
+        <Button size="sm" colorScheme="purple" mb={4} onClick={handleSave} isLoading={saving} w="full">
+          Save Changes
+        </Button>
+      )}
+
+      {/* Add new field definition */}
+      <Box p={3} borderWidth={1} borderRadius="md" bg={bg}>
+        <Text fontSize="xs" fontWeight="semibold" color={muted} mb={2}>Add custom field</Text>
+        <HStack spacing={2}>
+          <Input
+            size="sm" placeholder="Field name"
+            value={newName} onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddDef()}
+            flex={1}
+          />
+          <Select size="sm" value={newType} onChange={e => setNewType(e.target.value as FieldDef['fieldType'])} w="100px">
+            <option value="text">Text</option>
+            <option value="number">Number</option>
+            <option value="date">Date</option>
+            <option value="boolean">Yes/No</option>
+          </Select>
+          <Button size="sm" colorScheme="purple" leftIcon={<AddIcon />} onClick={handleAddDef} isLoading={addingDef} isDisabled={!newName.trim()}>
+            Add
+          </Button>
+        </HStack>
+      </Box>
+    </Box>
+  );
+}
+
 // ── main page ─────────────────────────────────────────────────────────────────
 
 const CustomerProfile: React.FC = () => {
@@ -529,6 +667,12 @@ const CustomerProfile: React.FC = () => {
                     </Box>
                     <Box borderWidth={1} borderRadius="xl" p={5} bg={headerBg} shadow="sm">
                       <TasksPanel customerId={customer._id} />
+                    </Box>
+                    <Box borderWidth={1} borderRadius="xl" p={5} bg={headerBg} shadow="sm">
+                      <CustomFieldsPanel
+                        customerId={customer._id}
+                        initialValues={customer.customFields ?? {}}
+                      />
                     </Box>
                   </Stack>
                 </GridItem>
