@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box, 
   Flex, 
@@ -20,9 +20,7 @@ import {
   useDisclosure,
   VStack,
   HStack,
-  useColorModeValue,
-  Tooltip,
-  Heading
+  useColorModeValue
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -35,8 +33,6 @@ const Navigation: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const canGoBack = window.history.length > 1 && location.pathname !== '/';
-  const [mobileView, setMobileView] = useState(false);
-
   // Colors
   const sidebarBg = useColorModeValue('white', 'gray.800');
   const activeBg = useColorModeValue('teal.50', 'teal.900');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, Flex, useColorModeValue } from '@chakra-ui/react';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import Navigation from './Navigation';
 
 interface LayoutProps {
