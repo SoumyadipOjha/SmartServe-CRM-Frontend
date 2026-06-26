@@ -14,6 +14,7 @@ export interface Customer {
     lastActivity: Date;
     tags?: string[];
     notes?: Note[];
+    customFields?: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -133,6 +134,22 @@ export interface CustomerProfile {
     };
 }
 
+export type DealStage = 'lead' | 'contacted' | 'proposal' | 'negotiation' | 'won' | 'lost';
+
+export interface Deal {
+    _id: string;
+    title: string;
+    customer: { _id: string; name: string; email: string } | string;
+    createdBy: string | User;
+    stage: DealStage;
+    value: number;
+    expectedCloseDate?: Date | null;
+    notes?: string;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export interface Task {
     _id: string;
     customer: string | Customer;
@@ -154,6 +171,8 @@ export interface User {
     googleId: string;
     picture?: string;
     role: 'admin' | 'user';
+    teamRole: 'owner' | 'admin' | 'member';
+    organizationOwner?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
