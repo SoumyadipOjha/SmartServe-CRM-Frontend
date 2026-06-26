@@ -57,7 +57,8 @@ import {
   FiBriefcase,
   FiFilter,
   FiSend,
-  FiEdit
+  FiEdit,
+  FiClock
 } from 'react-icons/fi';
 
 // Fields for the query builder
@@ -114,6 +115,10 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('details');
   const [showMessagePreview, setShowMessagePreview] = useState(false);
+
+  // Scheduling state
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
 
   // A/B test state
   const [isAbTest, setIsAbTest] = useState(false);
@@ -362,6 +367,7 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
         rules,
         isAbTest,
         variantBMessage: isAbTest ? variantBMessage : undefined,
+        scheduledAt: scheduleEnabled && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
       });
       toast({
         title: 'Campaign created',
@@ -619,6 +625,35 @@ const CreateCampaign: React.FC<CreateCampaignProps> = ({ onCancel }) => {
                     fontSize={['sm', 'md']}
                   />
                 </FormControl>
+                {/* Schedule toggle */}
+                <Box p={4} borderWidth={1} borderRadius="md" borderColor={scheduleEnabled ? 'teal.200' : borderColor} bg={scheduleEnabled ? 'teal.50' : 'transparent'}>
+                  <Flex align="center" justify="space-between" mb={scheduleEnabled ? 3 : 0}>
+                    <HStack spacing={2}>
+                      <IconWrapper icon={FiClock} color={scheduleEnabled ? 'teal.500' : 'gray.400'} />
+                      <Box>
+                        <Text fontWeight="semibold" fontSize="sm">Schedule for later</Text>
+                        <Text fontSize="xs" color="gray.500">Set a future date and time to send this campaign automatically</Text>
+                      </Box>
+                    </HStack>
+                    <Switch colorScheme="teal" size="lg" isChecked={scheduleEnabled} onChange={e => { setScheduleEnabled(e.target.checked); if (!e.target.checked) setScheduledAt(''); }} />
+                  </Flex>
+                  <Collapse in={scheduleEnabled} animateOpacity>
+                    <FormControl mt={2}>
+                      <FormLabel fontSize="sm" fontWeight="medium">Send at</FormLabel>
+                      <Input
+                        type="datetime-local"
+                        value={scheduledAt}
+                        onChange={e => setScheduledAt(e.target.value)}
+                        min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                        bg="white"
+                        borderColor="teal.200"
+                        fontSize="sm"
+                      />
+                      <FormHelperText>Campaign will be queued automatically at this time</FormHelperText>
+                    </FormControl>
+                  </Collapse>
+                </Box>
+
                 <Flex justify={['center', 'flex-end']}>
                   <Button
                     onClick={() => setActiveSection('audience')}

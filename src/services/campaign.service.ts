@@ -8,6 +8,7 @@ interface CampaignCreateData {
     message: string;
     isAbTest?: boolean;
     variantBMessage?: string;
+    scheduledAt?: string;
 }
 
 const CampaignService = {
@@ -72,8 +73,8 @@ const CampaignService = {
      * @param id Campaign ID
      * @returns Promise with activated campaign
      */
-    activateCampaign: async (id: string): Promise<{ message: string; jobId: string; campaignId: string }> => {
-        const response = await apiClient.post<{ message: string; jobId: string; campaignId: string }>(`/campaigns/${id}/activate`);
+    activateCampaign: async (id: string): Promise<{ message: string; jobId?: string; campaignId: string; scheduledAt?: string }> => {
+        const response = await apiClient.post<{ message: string; jobId?: string; campaignId: string; scheduledAt?: string }>(`/campaigns/${id}/activate`);
         return response.data;
     },
 

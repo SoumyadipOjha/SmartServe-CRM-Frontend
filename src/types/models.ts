@@ -1,3 +1,9 @@
+export interface Note {
+    _id: string;
+    content: string;
+    createdAt: Date;
+}
+
 export interface Customer {
     _id: string;
     name: string;
@@ -6,6 +12,8 @@ export interface Customer {
     totalSpend: number;
     visits: number;
     lastActivity: Date;
+    tags?: string[];
+    notes?: Note[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -65,6 +73,7 @@ export interface Campaign {
     status: 'draft' | 'queued' | 'active' | 'completed' | 'cancelled';
     isAbTest?: boolean;
     variants?: CampaignVariant[];
+    scheduledAt?: Date | null;
     createdBy: string | User;
     createdAt: Date;
     updatedAt: Date;
@@ -122,6 +131,20 @@ export interface CustomerProfile {
         avgOrderValue: number;
         healthStatus: 'active' | 'at_risk' | 'dormant';
     };
+}
+
+export interface Task {
+    _id: string;
+    customer: string | Customer;
+    createdBy: string | User;
+    title: string;
+    description?: string;
+    dueDate?: Date | null;
+    priority: 'low' | 'medium' | 'high';
+    completed: boolean;
+    completedAt?: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface User {

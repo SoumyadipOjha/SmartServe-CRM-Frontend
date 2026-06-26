@@ -1,5 +1,5 @@
 import apiClient from './api-client';
-import { Customer, CustomerProfile } from '../types/models';
+import { Customer, CustomerProfile, Note } from '../types/models';
 
 const CustomerService = {
     /**
@@ -58,7 +58,21 @@ const CustomerService = {
     deleteCustomer: async (id: string): Promise<string> => {
         const response = await apiClient.delete<{ message: string }>(`/customers/${id}`);
         return response.data.message;
-    }
+    },
+
+    addNote: async (customerId: string, content: string): Promise<Note> => {
+        const response = await apiClient.post<{ note: Note }>(`/customers/${customerId}/notes`, { content });
+        return response.data.note;
+    },
+
+    deleteNote: async (customerId: string, noteId: string): Promise<void> => {
+        await apiClient.delete(`/customers/${customerId}/notes/${noteId}`);
+    },
+
+    updateTags: async (customerId: string, tags: string[]): Promise<Customer> => {
+        const response = await apiClient.put<{ customer: Customer }>(`/customers/${customerId}`, { tags });
+        return response.data.customer;
+    },
 };
 
 export default CustomerService;

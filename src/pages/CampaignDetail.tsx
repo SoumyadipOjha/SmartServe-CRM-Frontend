@@ -385,19 +385,30 @@ const CampaignDetail: React.FC = () => {
 
     try {
       setActivating(true);
-      await CampaignService.activateCampaign(campaign._id);
+      const result = await CampaignService.activateCampaign(campaign._id);
 
-      toast({
-        title: 'Campaign queued',
-        description: 'Delivery is running in the background. Progress will update automatically.',
-        status: 'info',
-        duration: 5000,
-        isClosable: true,
-      });
-
-      // Optimistically update status and start polling
-      setCampaign(prev => prev ? { ...prev, status: 'queued' } : prev);
-      startJobPolling(campaign._id);
+      // Backend returns { scheduledAt } when campaign is deferred, otherwise it's queued now
+      if (result?.scheduledAt) {
+        toast({
+          title: 'Campaign scheduled',
+          description: `Will be sent automatically at ${new Date(result.scheduledAt).toLocaleString()}`,
+          status: 'success',
+          duration: 6000,
+          isClosable: true,
+        });
+        // Status stays draft; just refresh to pick up any backend changes
+        fetchCampaign();
+      } else {
+        toast({
+          title: 'Campaign queued',
+          description: 'Delivery is running in the background. Progress will update automatically.',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        });
+        setCampaign(prev => prev ? { ...prev, status: 'queued' } : prev);
+        startJobPolling(campaign._id);
+      }
     } catch (err) {
       console.error('Error activating campaign:', err);
       setError('Failed to activate campaign');
@@ -565,6 +576,11 @@ const CampaignDetail: React.FC = () => {
               {campaign.status.toUpperCase()}
             </Badge>
             {campaign.isAbTest && <Badge colorScheme="purple" fontSize="sm" px={2}>A/B TEST</Badge>}
+            {campaign.scheduledAt && campaign.status === 'draft' && (
+              <Badge colorScheme="cyan" fontSize="sm" px={2}>
+                Scheduled: {new Date(campaign.scheduledAt).toLocaleString()}
+              </Badge>
+            )}
             <Text fontSize="sm">
               Created on {new Date(campaign.createdAt).toLocaleDateString()}
             </Text>
