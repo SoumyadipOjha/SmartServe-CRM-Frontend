@@ -17,6 +17,13 @@ const CampaignDetail = React.lazy(() => import('./pages/CampaignDetail'));
 const CustomerProfile = React.lazy(() => import('./pages/CustomerProfile'));
 const Segments = React.lazy(() => import('./pages/Segments'));
 const AuthCallbackPage = React.lazy(() => import('./pages/AuthCallback'));
+const Pipeline     = React.lazy(() => import('./pages/Pipeline'));
+const Revenue      = React.lazy(() => import('./pages/Revenue'));
+const LeadForms    = React.lazy(() => import('./pages/LeadForms'));
+const Sequences    = React.lazy(() => import('./pages/Sequences'));
+const TeamSettings = React.lazy(() => import('./pages/TeamSettings'));
+const PublicLeadForm = React.lazy(() => import('./pages/PublicLeadForm'));
+const AcceptInvite   = React.lazy(() => import('./pages/AcceptInvite'));
 
 // Create a client
 const queryClient = new QueryClient();
@@ -63,6 +70,18 @@ function App() {
               <Route path="/auth/success" element={
                 <React.Suspense fallback={<LoadingFallback componentName="authentication" />}>
                   <AuthCallbackPage />
+                </React.Suspense>
+              } />
+
+              {/* Public — no auth required */}
+              <Route path="/forms/:token" element={
+                <React.Suspense fallback={<LoadingFallback componentName="form" />}>
+                  <PublicLeadForm />
+                </React.Suspense>
+              } />
+              <Route path="/accept-invite" element={
+                <React.Suspense fallback={<LoadingFallback componentName="invite" />}>
+                  <AcceptInvite />
                 </React.Suspense>
               } />
               
@@ -128,6 +147,51 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              {/* Revenue Forecast */}
+              <Route path="/revenue" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="revenue" />}>
+                    <Revenue />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
+              {/* Pipeline / Kanban */}
+              <Route path="/pipeline" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="pipeline" />}>
+                    <Pipeline />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
+              {/* Lead Capture Forms */}
+              <Route path="/lead-forms" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="lead forms" />}>
+                    <LeadForms />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
+              {/* Drip Sequences */}
+              <Route path="/sequences" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="sequences" />}>
+                    <Sequences />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
+              {/* Team Settings */}
+              <Route path="/team" element={
+                <ProtectedRoute>
+                  <React.Suspense fallback={<LoadingFallback componentName="team settings" />}>
+                    <TeamSettings />
+                  </React.Suspense>
+                </ProtectedRoute>
+              } />
+
               {/* Last the dynamic campaign detail route */}
               <Route path="/campaigns/:id" element={
                 <ProtectedRoute>
