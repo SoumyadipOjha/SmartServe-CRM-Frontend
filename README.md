@@ -23,40 +23,97 @@ React 18 + TypeScript single-page application for Flayx CRM. Built with Create R
 
 ## Project Structure
 
+Feature-slice layout: each domain owns its pages and services in one place; truly shared code lives in `shared/`.
+
 ```
 SmartServe-CRM-Frontend/
 ├── public/
 │   └── index.html
 ├── src/
-│   ├── App.tsx                    # Root — all routes wired, React.lazy loaded
+│   ├── App.tsx                        # Root — all routes wired, React.lazy loaded
 │   ├── index.tsx
-│   ├── pages/
-│   │   ├── Login.tsx
-│   │   ├── Register.tsx
-│   │   ├── Dashboard.tsx          # KPI cards with SSE live data
-│   │   ├── Customers.tsx
-│   │   ├── Orders.tsx
-│   │   ├── Campaigns.tsx
-│   │   ├── Segments.tsx
-│   │   ├── Pipeline.tsx           # Kanban deal board
-│   │   ├── Revenue.tsx            # Revenue analytics
-│   │   ├── Sequences.tsx          # Drip email sequences
-│   │   ├── LeadForms.tsx          # Lead capture form builder
-│   │   ├── PublicLeadForm.tsx     # Public-facing form page (no auth)
-│   │   ├── TeamSettings.tsx       # Invite + manage team members
-│   │   ├── AcceptInvite.tsx       # Invite acceptance / signup page
-│   │   ├── Analytics.tsx
-│   │   ├── AiAssistant.tsx        # Gemini-powered chat
-│   │   ├── Profile.tsx
-│   │   └── Settings.tsx
-│   ├── components/                # Shared layout, Navbar, modals, etc.
-│   ├── services/                  # Axios API modules per resource
-│   ├── context/
-│   │   └── AuthContext.tsx        # JWT storage, user state, login/logout
-│   ├── types/                     # TypeScript interfaces
-│   └── utils/                     # Helpers, formatters
-├── vercel.json                    # SPA rewrites + CI=false build override
-├── .env.production                # Gitignored — set in Vercel dashboard
+│   ├── features/                      # Feature slices — pages + services co-located per domain
+│   │   ├── auth/
+│   │   │   ├── pages/
+│   │   │   │   ├── Login.tsx
+│   │   │   │   ├── AuthCallback.tsx
+│   │   │   │   └── AcceptInvite.tsx
+│   │   │   └── services/
+│   │   │       └── auth.service.ts
+│   │   ├── campaigns/
+│   │   │   ├── pages/
+│   │   │   │   ├── Campaigns.tsx
+│   │   │   │   ├── CreateCampaign.tsx
+│   │   │   │   └── CampaignDetail.tsx
+│   │   │   └── services/
+│   │   │       └── campaign.service.ts
+│   │   ├── customers/
+│   │   │   ├── components/
+│   │   │   │   ├── BulkUploadButton.tsx
+│   │   │   │   └── ExportButton.tsx
+│   │   │   ├── pages/
+│   │   │   │   ├── Customers.tsx
+│   │   │   │   └── CustomerProfile.tsx
+│   │   │   └── services/
+│   │   │       ├── customer.service.ts
+│   │   │       └── task.service.ts
+│   │   ├── dashboard/
+│   │   │   └── pages/
+│   │   │       └── Dashboard.tsx      # Live KPI cards via SSE
+│   │   ├── lead-forms/
+│   │   │   ├── pages/
+│   │   │   │   ├── LeadForms.tsx
+│   │   │   │   └── PublicLeadForm.tsx # No-auth public submission page
+│   │   │   └── services/
+│   │   │       └── lead-form.service.ts
+│   │   ├── orders/
+│   │   │   ├── pages/
+│   │   │   │   └── Orders.tsx
+│   │   │   └── services/
+│   │   │       └── order.service.ts
+│   │   ├── pipeline/
+│   │   │   ├── pages/
+│   │   │   │   └── Pipeline.tsx       # Kanban deal board
+│   │   │   └── services/
+│   │   │       ├── deal.service.ts
+│   │   │       └── custom-field.service.ts
+│   │   ├── revenue/
+│   │   │   └── pages/
+│   │   │       └── Revenue.tsx
+│   │   ├── segments/
+│   │   │   ├── pages/
+│   │   │   │   └── Segments.tsx
+│   │   │   └── services/
+│   │   │       └── segment.service.ts
+│   │   ├── sequences/
+│   │   │   ├── pages/
+│   │   │   │   └── Sequences.tsx
+│   │   │   └── services/
+│   │   │       └── sequence.service.ts
+│   │   └── team/
+│   │       ├── pages/
+│   │       │   └── TeamSettings.tsx
+│   │       └── services/
+│   │           └── team.service.ts
+│   ├── lib/
+│   │   └── api-client.ts              # Axios instance with base URL + auth interceptor
+│   └── shared/                        # Shared code used by multiple features
+│       ├── components/
+│       │   ├── Layout.tsx
+│       │   ├── Navigation.tsx
+│       │   └── Pagination.tsx
+│       ├── context/
+│       │   └── AuthContext.tsx        # JWT storage, user state, login/logout
+│       ├── services/
+│       │   ├── ai.service.ts          # Gemini AI — used by campaigns + segments
+│       │   └── analytics.service.ts   # SSE client — used by dashboard
+│       ├── types/
+│       │   ├── models.ts
+│       │   └── customer.ts
+│       └── utils/
+│           └── icon-wrapper.tsx
+├── vercel.json                        # SPA rewrites + CI=false build override
+├── .env.production                    # Gitignored — set in Vercel dashboard
 └── package.json
 ```
 

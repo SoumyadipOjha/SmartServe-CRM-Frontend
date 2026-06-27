@@ -1,29 +1,29 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ChakraProvider, CSSReset, Spinner, Box, Text, Center } from '@chakra-ui/react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './shared/context/AuthContext';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Import the CreateCampaign component directly
-import CreateCampaign from './pages/CreateCampaign';
+import CreateCampaign from './features/campaigns/pages/CreateCampaign';
 
 // Use lazy loading for other components
-const Login = React.lazy(() => import('./pages/Login'));
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const Customers = React.lazy(() => import('./pages/Customers'));
-const Orders = React.lazy(() => import('./pages/Orders'));
-const Campaigns = React.lazy(() => import('./pages/Campaigns'));
-const CampaignDetail = React.lazy(() => import('./pages/CampaignDetail'));
-const CustomerProfile = React.lazy(() => import('./pages/CustomerProfile'));
-const Segments = React.lazy(() => import('./pages/Segments'));
-const AuthCallbackPage = React.lazy(() => import('./pages/AuthCallback'));
-const Pipeline     = React.lazy(() => import('./pages/Pipeline'));
-const Revenue      = React.lazy(() => import('./pages/Revenue'));
-const LeadForms    = React.lazy(() => import('./pages/LeadForms'));
-const Sequences    = React.lazy(() => import('./pages/Sequences'));
-const TeamSettings = React.lazy(() => import('./pages/TeamSettings'));
-const PublicLeadForm = React.lazy(() => import('./pages/PublicLeadForm'));
-const AcceptInvite   = React.lazy(() => import('./pages/AcceptInvite'));
+const Login = React.lazy(() => import('./features/auth/pages/Login'));
+const Dashboard = React.lazy(() => import('./features/dashboard/pages/Dashboard'));
+const Customers = React.lazy(() => import('./features/customers/pages/Customers'));
+const Orders = React.lazy(() => import('./features/orders/pages/Orders'));
+const Campaigns = React.lazy(() => import('./features/campaigns/pages/Campaigns'));
+const CampaignDetail = React.lazy(() => import('./features/campaigns/pages/CampaignDetail'));
+const CustomerProfile = React.lazy(() => import('./features/customers/pages/CustomerProfile'));
+const Segments = React.lazy(() => import('./features/segments/pages/Segments'));
+const AuthCallbackPage = React.lazy(() => import('./features/auth/pages/AuthCallback'));
+const Pipeline     = React.lazy(() => import('./features/pipeline/pages/Pipeline'));
+const Revenue      = React.lazy(() => import('./features/revenue/pages/Revenue'));
+const LeadForms    = React.lazy(() => import('./features/lead-forms/pages/LeadForms'));
+const Sequences    = React.lazy(() => import('./features/sequences/pages/Sequences'));
+const TeamSettings = React.lazy(() => import('./features/team/pages/TeamSettings'));
+const PublicLeadForm = React.lazy(() => import('./features/lead-forms/pages/PublicLeadForm'));
+const AcceptInvite   = React.lazy(() => import('./features/auth/pages/AcceptInvite'));
 
 // Create a client
 const queryClient = new QueryClient();
