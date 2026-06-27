@@ -236,17 +236,19 @@ const Revenue: React.FC = () => {
             </Box>
 
             {/* Stage breakdown table */}
-            <Box mt={4} bg={gridBg} borderRadius="lg" overflow="hidden" overflowX="auto">
+            <Box mt={4} bg={gridBg} borderRadius="lg" overflow="hidden">
               {activeStages.map(s => {
                 const { count, value } = pipeline.byStage[s] || { count: 0, value: 0 };
                 return (
-                  <Flex key={s} px={3} py={2} align="center" borderBottomWidth={1} borderColor="gray.100" _last={{ borderBottom: 0 }}>
-                    <Box w={2} h={2} borderRadius="full" bg={STAGE_COLORS[s]} mr={2} flexShrink={0} />
-                    <Text fontSize="sm" flex={1}>{STAGE_LABELS[s]}</Text>
-                    <HStack spacing={3}>
+                  <Flex key={s} px={3} py={2} align="center" borderBottomWidth={1} borderColor="gray.100" _last={{ borderBottom: 0 }} gap={2}>
+                    <HStack spacing={2} flex={1} minW={0}>
+                      <Box w={2} h={2} borderRadius="full" bg={STAGE_COLORS[s]} flexShrink={0} />
+                      <Text fontSize="sm" noOfLines={1}>{STAGE_LABELS[s]}</Text>
+                    </HStack>
+                    <HStack spacing={[1, 3]} flexShrink={0}>
                       <Badge colorScheme="gray" fontSize="xs">{count} deal{count !== 1 ? 's' : ''}</Badge>
-                      <Badge colorScheme="gray" fontSize="xs">{STAGE_PROB[s]}% prob</Badge>
-                      <Text fontSize="sm" fontWeight="semibold" w="70px" textAlign="right">{fmtCurrency(value)}</Text>
+                      <Badge colorScheme="gray" fontSize="xs" display={{ base: 'none', sm: 'inline-flex' }}>{STAGE_PROB[s]}% prob</Badge>
+                      <Text fontSize="sm" fontWeight="semibold" minW="52px" textAlign="right">{fmtCurrency(value)}</Text>
                     </HStack>
                   </Flex>
                 );
@@ -256,16 +258,16 @@ const Revenue: React.FC = () => {
 
           {/* ── Won vs Lost ── */}
           <Box bg={cardBg} borderWidth={1} borderRadius="xl" p={[3, 5]} shadow="sm">
-            <Flex justify="space-between" align="center" mb={4} wrap="wrap" gap={2}>
-              <Heading size="sm">Won vs Lost (12 months)</Heading>
+            <Flex align="flex-start" justify="space-between" mb={4} gap={2}>
+              <Heading size="sm">Won vs Lost</Heading>
               {wonLost.winRate !== null && (
-                <Badge colorScheme={wonLost.winRate >= 50 ? 'green' : 'orange'} fontSize="sm" px={2}>
+                <Badge colorScheme={wonLost.winRate >= 50 ? 'green' : 'orange'} fontSize="sm" px={2} flexShrink={0} mt="1px">
                   {wonLost.winRate}% win rate
                 </Badge>
               )}
             </Flex>
             <Box overflowX="auto">
-              <Box minW="280px">
+              <Box minW={{ base: '100%', sm: '280px' }}>
                 <Bar
                   data={wonLostChartData}
                   options={{ responsive: true, plugins: { legend: { position: 'top' as const } } }}
