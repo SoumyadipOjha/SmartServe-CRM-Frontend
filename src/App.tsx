@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Import the CreateCampaign component directly
 import CreateCampaign from './features/campaigns/pages/CreateCampaign';
+import OnboardingWizard from './shared/components/OnboardingWizard';
 
 // Use lazy loading for other components
 const Login = React.lazy(() => import('./features/auth/pages/Login'));
@@ -41,16 +42,21 @@ const LoadingFallback = ({ componentName = "component" }) => (
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return <LoadingFallback componentName="authentication" />;
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
-  return <>{children}</>;
+
+  return (
+    <>
+      <OnboardingWizard />
+      {children}
+    </>
+  );
 };
 
 function App() {
