@@ -91,6 +91,7 @@ const CampaignService = {
     getCampaignStats: async (id: string): Promise<{
         sent: number;
         opened: number;
+        clicked: number;
         failed: number;
         audienceSize: number;
         isAbTest?: boolean;
@@ -98,7 +99,7 @@ const CampaignService = {
     }> => {
         const response = await apiClient.get<{
             stats: {
-                sent: number; opened: number; failed: number; audienceSize: number;
+                sent: number; opened: number; clicked: number; failed: number; audienceSize: number;
                 isAbTest?: boolean;
                 variants?: { label: string; audienceSize: number; sent: number; opened: number; failed: number }[];
             }
