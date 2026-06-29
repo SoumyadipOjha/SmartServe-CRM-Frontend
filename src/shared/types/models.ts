@@ -69,6 +69,7 @@ export interface Campaign {
     deliveryStats: {
         sent: number;
         opened: number;
+        clicked: number;
         failed: number;
     };
     status: 'draft' | 'queued' | 'active' | 'completed' | 'cancelled';

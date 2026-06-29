@@ -69,7 +69,7 @@ const CampaignDetail: React.FC = () => {
   
   // Add these refs to control refresh behavior
   const stableCountRef = useRef<number>(0);
-  const lastStatsRef = useRef<{ sent: number; opened: number; failed: number }>({ sent: 0, opened: 0, failed: 0 });
+  const lastStatsRef = useRef<{ sent: number; opened: number; clicked: number; failed: number }>({ sent: 0, opened: 0, clicked: 0, failed: 0 });
   const totalRefreshAttempts = useRef<number>(0);
   const maxRefreshAttempts = 20; // Limit the number of refresh attempts
   const mountedRef = useRef<boolean>(true);
@@ -106,9 +106,10 @@ const CampaignDetail: React.FC = () => {
 
       // Store current stats for comparison
       lastStatsRef.current = {
-        sent:   campaign.deliveryStats.sent,
-        opened: campaign.deliveryStats.opened ?? 0,
-        failed: campaign.deliveryStats.failed,
+        sent:    campaign.deliveryStats.sent,
+        opened:  campaign.deliveryStats.opened ?? 0,
+        clicked: campaign.deliveryStats.clicked ?? 0,
+        failed:  campaign.deliveryStats.failed,
       };
 
       // Check if we need to continue refreshing
@@ -170,9 +171,10 @@ const CampaignDetail: React.FC = () => {
           latestData = {
             ...data,
             deliveryStats: {
-              sent:   stats.sent,
-              opened: stats.opened ?? 0,
-              failed: stats.failed,
+              sent:    stats.sent,
+              opened:  stats.opened ?? 0,
+              clicked: stats.clicked ?? 0,
+              failed:  stats.failed,
             },
             audienceSize: stats.audienceSize
           };
@@ -205,9 +207,10 @@ const CampaignDetail: React.FC = () => {
         // Store the stats reference for comparison
         if (latestData.deliveryStats) {
           lastStatsRef.current = {
-            sent:   latestData.deliveryStats.sent,
-            opened: latestData.deliveryStats.opened ?? 0,
-            failed: latestData.deliveryStats.failed,
+            sent:    latestData.deliveryStats.sent,
+            opened:  latestData.deliveryStats.opened ?? 0,
+            clicked: latestData.deliveryStats.clicked ?? 0,
+            failed:  latestData.deliveryStats.failed,
           };
         }
 
@@ -322,9 +325,10 @@ const CampaignDetail: React.FC = () => {
         return {
           ...prevCampaign,
           deliveryStats: {
-            sent:   stats.sent,
-            opened: stats.opened ?? 0,
-            failed: stats.failed,
+            sent:    stats.sent,
+            opened:  stats.opened ?? 0,
+            clicked: stats.clicked ?? 0,
+            failed:  stats.failed,
           },
           audienceSize: stats.audienceSize,
           status: isCompleted && prevCampaign.status === 'active'
@@ -335,9 +339,10 @@ const CampaignDetail: React.FC = () => {
 
       // Store current stats for next comparison
       lastStatsRef.current = {
-        sent:   stats.sent,
-        opened: stats.opened ?? 0,
-        failed: stats.failed,
+        sent:    stats.sent,
+        opened:  stats.opened ?? 0,
+        clicked: stats.clicked ?? 0,
+        failed:  stats.failed,
       };
 
       // Determine if we should stop refreshing
@@ -453,22 +458,25 @@ const CampaignDetail: React.FC = () => {
     if (!campaign) return null;
 
     const opened     = campaign.deliveryStats.opened ?? 0;
-    const dispatched = campaign.deliveryStats.sent;   // SMTP accepted, inbox delivery unconfirmed
+    const clicked    = campaign.deliveryStats.clicked ?? 0;
+    const dispatched = campaign.deliveryStats.sent;
     const failed     = campaign.deliveryStats.failed;
 
     const data = {
-      labels: ['Opened', 'Dispatched', 'Failed'],
+      labels: ['Opened', 'Clicked', 'Sent', 'Failed'],
       datasets: [
         {
           label: 'Email Engagement',
-          data: [opened, dispatched, failed],
+          data: [opened, clicked, dispatched, failed],
           backgroundColor: [
-            'rgba(56, 161, 105, 0.7)',   // green — confirmed opened
-            'rgba(54, 162, 235, 0.6)',   // blue  — SMTP accepted, not yet opened
-            'rgba(255, 99, 132, 0.6)',   // red   — SMTP rejected
+            'rgba(56, 161, 105, 0.7)',   // green — opened
+            'rgba(159, 122, 234, 0.7)',  // purple — clicked
+            'rgba(54, 162, 235, 0.6)',   // blue  — sent
+            'rgba(255, 99, 132, 0.6)',   // red   — failed
           ],
           borderColor: [
             'rgba(56, 161, 105, 1)',
+            'rgba(159, 122, 234, 1)',
             'rgba(54, 162, 235, 1)',
             'rgba(255, 99, 132, 1)',
           ],
@@ -618,30 +626,46 @@ const CampaignDetail: React.FC = () => {
               isIndeterminate={campaign.status === 'queued' && (!job || job.total === 0)}
               mb={4}
             />
-            <Grid templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }} gap={4}>
+            <Grid templateColumns={{ base: '1fr 1fr', sm: 'repeat(5, 1fr)' }} gap={4}>
               <Stat>
-                <StatLabel>Audience Size</StatLabel>
+                <StatLabel>Audience</StatLabel>
                 <StatNumber>{campaign.audienceSize}</StatNumber>
-                <StatHelpText>Total customers</StatHelpText>
+                <StatHelpText>Total</StatHelpText>
               </Stat>
               <Stat>
-                <StatLabel>Messages Sent</StatLabel>
+                <StatLabel>Sent</StatLabel>
                 <StatNumber>{campaign.deliveryStats.sent}</StatNumber>
                 <StatHelpText>
-                  {campaign.audienceSize > 0 
-                    ? `${Math.round((campaign.deliveryStats.sent / campaign.audienceSize) * 100)}% of audience` 
-                    : 'No audience'
-                  }
+                  {campaign.audienceSize > 0
+                    ? `${Math.round((campaign.deliveryStats.sent / campaign.audienceSize) * 100)}%`
+                    : '—'}
                 </StatHelpText>
               </Stat>
               <Stat>
-                <StatLabel>Failed Deliveries</StatLabel>
+                <StatLabel>Opened</StatLabel>
+                <StatNumber>{campaign.deliveryStats.opened ?? 0}</StatNumber>
+                <StatHelpText>
+                  {campaign.deliveryStats.sent > 0
+                    ? `${Math.round(((campaign.deliveryStats.opened ?? 0) / campaign.deliveryStats.sent) * 100)}% open rate`
+                    : '—'}
+                </StatHelpText>
+              </Stat>
+              <Stat>
+                <StatLabel>Clicked</StatLabel>
+                <StatNumber>{campaign.deliveryStats.clicked ?? 0}</StatNumber>
+                <StatHelpText>
+                  {campaign.deliveryStats.sent > 0
+                    ? `${Math.round(((campaign.deliveryStats.clicked ?? 0) / campaign.deliveryStats.sent) * 100)}% CTR`
+                    : '—'}
+                </StatHelpText>
+              </Stat>
+              <Stat>
+                <StatLabel>Failed</StatLabel>
                 <StatNumber>{campaign.deliveryStats.failed}</StatNumber>
                 <StatHelpText>
-                  {campaign.audienceSize > 0 
-                    ? `${Math.round((campaign.deliveryStats.failed / campaign.audienceSize) * 100)}% of audience` 
-                    : 'No messages sent'
-                  }
+                  {campaign.audienceSize > 0
+                    ? `${Math.round((campaign.deliveryStats.failed / campaign.audienceSize) * 100)}%`
+                    : '—'}
                 </StatHelpText>
               </Stat>
             </Grid>
@@ -721,15 +745,19 @@ const CampaignDetail: React.FC = () => {
                 <Stack spacing={1} mt={3} pt={3} borderTopWidth="1px" borderColor="gray.100">
                   <HStack spacing={2} align="flex-start">
                     <Box w={3} h={3} borderRadius="sm" bg="green.400" flexShrink={0} mt="3px" />
-                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Opened</Text> — recipient opened the email (tracking pixel confirmed)</Text>
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Opened</Text> — recipient opened the email (Resend tracking pixel)</Text>
+                  </HStack>
+                  <HStack spacing={2} align="flex-start">
+                    <Box w={3} h={3} borderRadius="sm" bg="purple.400" flexShrink={0} mt="3px" />
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Clicked</Text> — recipient clicked a link in the email</Text>
                   </HStack>
                   <HStack spacing={2} align="flex-start">
                     <Box w={3} h={3} borderRadius="sm" bg="blue.400" flexShrink={0} mt="3px" />
-                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Dispatched</Text> — accepted by Gmail SMTP, but inbox delivery is unconfirmed (may be in spam)</Text>
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Sent</Text> — delivered to inbox</Text>
                   </HStack>
                   <HStack spacing={2} align="flex-start">
                     <Box w={3} h={3} borderRadius="sm" bg="red.400" flexShrink={0} mt="3px" />
-                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Failed</Text> — SMTP rejected the email (invalid address or server error)</Text>
+                    <Text fontSize="xs" color="gray.600"><Text as="span" fontWeight="semibold">Failed</Text> — bounced or rejected</Text>
                   </HStack>
                 </Stack>
               </CardBody>

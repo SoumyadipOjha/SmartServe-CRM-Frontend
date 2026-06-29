@@ -125,9 +125,10 @@ const Campaigns: React.FC = () => {
                 return {
                   ...campaign,
                   deliveryStats: {
-                    sent:   stats.sent,
-                    opened: stats.opened ?? 0,
-                    failed: stats.failed,
+                    sent:    stats.sent,
+                    opened:  stats.opened ?? 0,
+                    clicked: stats.clicked ?? 0,
+                    failed:  stats.failed,
                   },
                   audienceSize: stats.audienceSize,
                   status: isCompleted && campaign.status === 'active' ? 'completed' : campaign.status
@@ -207,9 +208,10 @@ const Campaigns: React.FC = () => {
               return {
                 ...campaign,
                 deliveryStats: {
-                  sent:   updatedStat.sent,
-                  opened: (updatedStat as any).opened ?? 0,
-                  failed: updatedStat.failed,
+                  sent:    updatedStat.sent,
+                  opened:  (updatedStat as any).opened ?? 0,
+                  clicked: (updatedStat as any).clicked ?? 0,
+                  failed:  updatedStat.failed,
                 },
                 audienceSize: updatedStat.audienceSize,
                 status: isCompleted ? 'completed' : campaign.status
