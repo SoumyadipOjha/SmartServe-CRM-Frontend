@@ -2,8 +2,21 @@
 
 React 18 + TypeScript single-page application for Flayx CRM. Built with Create React App and Chakra UI v2.
 
-**Live app:** https://smart-serve-crm-frontend.vercel.app  
+**Live app:** https://smart-serve-crm.vercel.app  
 **Backend API:** https://smartserve-crm-backend.onrender.com
+
+---
+
+## Recent Features (v2)
+
+| # | Feature | Implementation |
+|---|---------|---------------|
+| 1 | **Empty states** | `shared/components/EmptyState.tsx` — rendered on every empty list page with icon, copy, and a CTA button |
+| 2 | **Toast notifications** | Chakra UI `useToast()` — success/error feedback after every create, update, and delete action |
+| 3 | **Email open & click tracking** | `CampaignDetail.tsx` polls `/campaigns/:id/stats` — chart and counters now include an **Opened** and **Clicked** bar |
+| 4 | **Task reminders** | Backend-only scheduler; frontend shows tasks with due dates in the customer profile task list |
+| 5 | **Onboarding wizard** | `shared/components/OnboardingWizard.tsx` — 3-step modal shown once per user (stored in `localStorage`). Steps: add a customer → create a deal → launch a campaign |
+| 6 | **PWA + push notifications** | Service worker at `public/service-worker.js`, `usePushNotifications` hook, and `PushNotificationBanner` component in the layout. App is installable on mobile and desktop |
 
 ---
 
@@ -28,7 +41,9 @@ Feature-slice layout: each domain owns its pages and services in one place; trul
 ```
 SmartServe-CRM-Frontend/
 ├── public/
-│   └── index.html
+│   ├── index.html
+│   ├── manifest.json              # PWA manifest — name, icons, theme colour
+│   └── service-worker.js          # App-shell caching + push notification handler
 ├── src/
 │   ├── App.tsx                        # Root — all routes wired, React.lazy loaded
 │   ├── index.tsx
@@ -101,17 +116,23 @@ SmartServe-CRM-Frontend/
 │       ├── components/
 │       │   ├── Layout.tsx
 │       │   ├── Navigation.tsx
-│       │   └── Pagination.tsx
+│       │   ├── Pagination.tsx
+│       │   ├── EmptyState.tsx             # Reusable empty-list prompt with icon + CTA button
+│       │   ├── OnboardingWizard.tsx       # 3-step first-login wizard (localStorage flag per user)
+│       │   └── PushNotificationBanner.tsx # Sticky banner to enable push notifications
 │       ├── context/
-│       │   └── AuthContext.tsx        # JWT storage, user state, login/logout
+│       │   └── AuthContext.tsx            # JWT storage, user state, demoLogin()
+│       ├── hooks/
+│       │   └── usePushNotifications.ts    # subscribe() / unsubscribe() via Web Push API
 │       ├── services/
-│       │   ├── ai.service.ts          # Gemini AI — used by campaigns + segments
-│       │   └── analytics.service.ts   # SSE client — used by dashboard
+│       │   ├── ai.service.ts              # Gemini AI — used by campaigns + segments
+│       │   └── analytics.service.ts       # SSE client — used by dashboard
 │       ├── types/
 │       │   ├── models.ts
 │       │   └── customer.ts
 │       └── utils/
-│           └── icon-wrapper.tsx
+│           ├── icon-wrapper.tsx
+│           └── registerServiceWorker.ts   # Registers /service-worker.js in production only
 ├── vercel.json                        # SPA rewrites + CI=false build override
 ├── .env.production                    # Gitignored — set in Vercel dashboard
 └── package.json
@@ -252,6 +273,15 @@ The repo is connected to Vercel for automatic deploys on push to `main`.
 ```
 
 `CI=false` is required because CRA treats all ESLint warnings as build errors in CI mode. Without it, the Vercel build will fail on warnings that are harmless in development.
+
+### PWA / Service Worker
+
+The service worker (`public/service-worker.js`) is registered only in production. It:
+- Caches the app shell on install for offline use
+- Handles `push` events and calls `self.registration.showNotification()`
+- Handles `notificationclick` to focus or open the app window
+
+Push subscriptions are created client-side via `usePushNotifications`, stored server-side at `POST /api/push/subscribe`, and triggered by the task reminder scheduler.
 
 ---
 
