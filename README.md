@@ -2,7 +2,7 @@
 
 React 18 + TypeScript single-page application for Flayx CRM. Built with Create React App and Chakra UI v2.
 
-**Live app:** https://smart-serve-crm.vercel.app  
+**Live app:** https://flayx-crm.vercel.app  
 **Backend API:** https://smartserve-crm-backend.onrender.com
 
 ---
