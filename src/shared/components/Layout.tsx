@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import Navigation from './Navigation';
+import PushNotificationBanner from './PushNotificationBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box minH="100vh" bg={bgColor}>
       <Navigation />
+      <PushNotificationBanner />
       <Box as="main" ml={{ base: 0, md: '240px' }} transition=".3s ease">
         <Box
           maxW="7xl"
