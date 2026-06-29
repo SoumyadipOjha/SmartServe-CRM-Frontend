@@ -7,6 +7,7 @@ import {
 } from '@chakra-ui/react';
 import { FiCopy, FiExternalLink, FiPlus, FiTrash2, FiEdit2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Layout from '../../../shared/components/Layout';
+import EmptyState from '../../../shared/components/EmptyState';
 import LeadFormService, { LeadForm, LeadFormField } from '../services/lead-form.service';
 
 const FIELD_TYPES = ['text','email','phone','textarea'] as const;
@@ -237,10 +238,13 @@ const LeadForms: React.FC = () => {
         {loading ? (
           <Flex justify="center" mt={20}><Spinner size="xl" color="teal.400" /></Flex>
         ) : forms.length === 0 ? (
-          <Flex direction="column" align="center" justify="center" mt={20} gap={3}>
-            <Text color="gray.500">No lead forms yet.</Text>
-            <Button colorScheme="teal" leftIcon={<FiPlus />} onClick={openCreate}>Create your first form</Button>
-          </Flex>
+          <EmptyState
+            icon="📋"
+            title="No lead forms yet"
+            description="Create embeddable forms to capture leads directly from your website or landing pages."
+            ctaLabel="Create Form"
+            onCta={openCreate}
+          />
         ) : (
           <VStack align="stretch" spacing={4}>
             {forms.map(form => (

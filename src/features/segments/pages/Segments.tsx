@@ -8,9 +8,10 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon, SmallAddIcon } from '@chakra-ui/icons';
 import { FiFilter, FiUsers, FiZap } from 'react-icons/fi';
-import { MdOutlineBookmark, MdOutlineBookmarkBorder } from 'react-icons/md';
+import { MdOutlineBookmark } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
+import EmptyState from '../../../shared/components/EmptyState';
 import SegmentService from '../services/segment.service';
 import { CampaignRules, RuleCondition, Segment, SegmentPreview } from '../../../shared/types/models';
 
@@ -311,10 +312,13 @@ const Segments: React.FC = () => {
           {loadingList ? (
             <Flex justify="center" py={12}><Spinner color="teal.400" /></Flex>
           ) : segments.length === 0 ? (
-            <Box borderWidth={1} borderRadius="xl" borderStyle="dashed" p={12} textAlign="center" color="gray.400">
-              <Icon as={MdOutlineBookmarkBorder} boxSize={10} mb={3} />
-              <Text>No saved segments yet. Use a template or create one from scratch.</Text>
-            </Box>
+            <EmptyState
+              icon="🎯"
+              title="No segments yet"
+              description="Build your first segment to target specific customer groups for campaigns and automations."
+              ctaLabel="Create Segment"
+              onCta={onOpen}
+            />
           ) : (
             <Stack spacing={3}>
               {segments.map(seg => (

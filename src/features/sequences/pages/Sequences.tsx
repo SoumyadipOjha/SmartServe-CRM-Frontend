@@ -7,9 +7,10 @@ import {
   useDisclosure, useToast, VStack, Select,
 } from '@chakra-ui/react';
 import {
-  FiChevronDown, FiChevronUp, FiMail, FiPlus, FiTrash2, FiUsers, FiEdit2, FiX,
+  FiChevronDown, FiChevronUp, FiPlus, FiTrash2, FiUsers, FiEdit2, FiX,
 } from 'react-icons/fi';
 import Layout from '../../../shared/components/Layout';
+import EmptyState from '../../../shared/components/EmptyState';
 import SequenceService, { Sequence, SequenceEnrollment, SequenceStep } from '../services/sequence.service';
 import apiClient from '../../../lib/api-client';
 
@@ -389,11 +390,13 @@ const Sequences: React.FC = () => {
         {loading ? (
           <Flex justify="center" mt={20}><Spinner size="xl" color="teal.400" /></Flex>
         ) : sequences.length === 0 ? (
-          <Flex direction="column" align="center" justify="center" mt={20} gap={3}>
-            <Text fontSize="4xl"><FiMail /></Text>
-            <Text color="gray.500">No sequences yet.</Text>
-            <Button colorScheme="teal" leftIcon={<FiPlus />} onClick={openCreate}>Create your first sequence</Button>
-          </Flex>
+          <EmptyState
+            icon="✉️"
+            title="No sequences yet"
+            description="Build automated email sequences to nurture leads and follow up with customers on autopilot."
+            ctaLabel="Create Sequence"
+            onCta={openCreate}
+          />
         ) : (
           <VStack align="stretch" spacing={4}>
             {sequences.map(seq => (

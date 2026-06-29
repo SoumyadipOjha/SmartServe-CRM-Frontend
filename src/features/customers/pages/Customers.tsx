@@ -10,6 +10,7 @@ import { AddIcon, EditIcon, DeleteIcon, SearchIcon } from '@chakra-ui/icons';
 import { Link as RouterLink } from 'react-router-dom';
 import Layout from '../../../shared/components/Layout';
 import Pagination from '../../../shared/components/Pagination';
+import EmptyState from '../../../shared/components/EmptyState';
 import CustomerService from '../services/customer.service';
 import { Customer } from '../../../shared/types/models';
 import BulkUploadButton from '../components/BulkUploadButton';
@@ -109,7 +110,9 @@ const Customers: React.FC = () => {
       try {
         await CustomerService.deleteCustomer(id);
         setCustomers(prev => prev.filter(c => c._id !== id));
+        toast({ title: 'Customer deleted', status: 'info', duration: 3000, isClosable: true });
       } catch {
+        toast({ title: 'Error deleting customer', status: 'error', duration: 4000, isClosable: true });
         setError('Error deleting customer');
       }
     }
@@ -126,12 +129,15 @@ const Customers: React.FC = () => {
       if (isEditing && selectedCustomer) {
         await CustomerService.updateCustomer(selectedCustomer._id, formData);
         setCustomers(prev => prev.map(c => c._id === selectedCustomer._id ? { ...c, ...formData } : c));
+        toast({ title: 'Customer updated', status: 'success', duration: 3000, isClosable: true });
       } else {
         const newCustomer = await CustomerService.createCustomer(formData);
         setCustomers(prev => [newCustomer, ...prev]);
+        toast({ title: 'Customer added', status: 'success', duration: 3000, isClosable: true });
       }
       onClose();
     } catch {
+      toast({ title: `Error ${isEditing ? 'updating' : 'creating'} customer`, status: 'error', duration: 4000, isClosable: true });
       setError(`Error ${isEditing ? 'updating' : 'creating'} customer`);
     }
   };
@@ -186,6 +192,14 @@ const Customers: React.FC = () => {
 
         {loading ? (
           <Text>Loading customers…</Text>
+        ) : customers.length === 0 && !search ? (
+          <EmptyState
+            icon="👥"
+            title="No customers yet"
+            description="Add your first customer to start tracking relationships, orders, and activity."
+            ctaLabel="Add Customer"
+            onCta={handleAddNew}
+          />
         ) : (
           <>
             <Box overflowX="auto">
@@ -211,7 +225,7 @@ const Customers: React.FC = () => {
                 </Thead>
                 <Tbody>
                   {paginated.length === 0 ? (
-                    <Tr><Td colSpan={7}>{search ? 'No customers match your search' : 'No customers found'}</Td></Tr>
+                    <Tr><Td colSpan={7} textAlign="center" color="gray.400" py={6}>No customers match your search</Td></Tr>
                   ) : (
                     paginated.map(customer => (
                       <Tr key={customer._id}>
