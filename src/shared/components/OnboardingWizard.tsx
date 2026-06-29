@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Button, Flex, Heading, Modal, ModalContent, ModalOverlay,
-  Progress, Text, HStack, VStack,
+  Text, HStack, Icon, CloseButton,
 } from '@chakra-ui/react';
+import { FiUsers, FiTrendingUp, FiMail } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,27 +11,27 @@ const STORAGE_KEY = (userId: string) => `smartserve_onboarded_${userId}`;
 
 const STEPS = [
   {
-    icon: '👥',
+    icon: FiUsers,
     title: 'Add your first customer',
     description:
-      'Start building your customer base. Add a contact so you can track activity, send emails, and manage deals from one place.',
-    cta: 'Go to Customers',
+      'Import or create a contact to start tracking their activity, orders, and notes in one place.',
+    cta: 'Add a customer',
     path: '/customers',
   },
   {
-    icon: '📊',
-    title: 'Create your first deal',
+    icon: FiTrendingUp,
+    title: 'Track a deal in the pipeline',
     description:
-      'Use the Pipeline to track deals through stages — Lead, Proposal, Negotiation, and Won. Move deals forward with drag-and-drop.',
-    cta: 'Open Pipeline',
+      'Move opportunities through stages from first contact to closed. Drag cards to update a deal\'s status as it progresses.',
+    cta: 'Open pipeline',
     path: '/pipeline',
   },
   {
-    icon: '📣',
+    icon: FiMail,
     title: 'Send your first campaign',
     description:
-      'Reach all your customers at once with a targeted email campaign. Set audience rules, write your message, and hit send.',
-    cta: 'Create Campaign',
+      'Pick an audience segment, write a message, and send a targeted email to multiple customers in one go.',
+    cta: 'Create a campaign',
     path: '/campaigns/create',
   },
 ];
@@ -67,66 +68,89 @@ const OnboardingWizard: React.FC = () => {
   if (!visible) return null;
 
   const current = STEPS[step];
-  const progress = ((step + 1) / STEPS.length) * 100;
 
   return (
-    <Modal isOpen={visible} onClose={dismiss} isCentered size="md" closeOnOverlayClick={false}>
-      <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(4px)" />
-      <ModalContent borderRadius="2xl" overflow="hidden" mx={4}>
-        {/* Header gradient */}
-        <Box
-          bgGradient="linear(135deg, teal.600, teal.800)"
-          px={8}
-          pt={8}
-          pb={6}
-        >
-          <Flex justify="space-between" align="flex-start" mb={4}>
-            <Text color="whiteAlpha.700" fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="wide">
-              Getting started · Step {step + 1} of {STEPS.length}
+    <Modal isOpen={visible} onClose={dismiss} isCentered size="sm" closeOnOverlayClick={false}>
+      <ModalOverlay bg="blackAlpha.500" />
+      <ModalContent borderRadius="lg" mx={4} boxShadow="lg">
+        <Box px={6} pt={5} pb={6}>
+          {/* Top row: step counter + close */}
+          <Flex justify="space-between" align="center" mb={5}>
+            <Text fontSize="xs" color="gray.400" fontWeight="medium">
+              Step {step + 1} of {STEPS.length}
             </Text>
-            <Button
-              variant="ghost"
-              size="xs"
-              color="whiteAlpha.600"
-              _hover={{ color: 'white' }}
-              onClick={dismiss}
-            >
-              Skip tour
-            </Button>
+            <CloseButton size="sm" color="gray.400" onClick={dismiss} />
           </Flex>
-          <Text fontSize="4xl" mb={3}>{current.icon}</Text>
-          <Heading size="md" color="white" mb={1}>{current.title}</Heading>
-          <Progress value={progress} size="xs" colorScheme="whiteAlpha" bg="whiteAlpha.300" borderRadius="full" mt={4} />
-        </Box>
 
-        {/* Body */}
-        <Box px={8} py={6}>
-          <Text color="gray.600" fontSize="sm" lineHeight="tall" mb={6}>
+          {/* Step dots */}
+          <HStack spacing={1.5} mb={6}>
+            {STEPS.map((_, i) => (
+              <Box
+                key={i}
+                h="3px"
+                flex={1}
+                borderRadius="full"
+                bg={i <= step ? 'teal.500' : 'gray.200'}
+                transition="background 0.2s"
+              />
+            ))}
+          </HStack>
+
+          {/* Icon + title */}
+          <Flex align="center" gap={3} mb={3}>
+            <Flex
+              align="center"
+              justify="center"
+              w={9}
+              h={9}
+              borderRadius="md"
+              bg="teal.50"
+              flexShrink={0}
+            >
+              <Icon as={current.icon} boxSize={4} color="teal.600" />
+            </Flex>
+            <Heading size="sm" color="gray.800" fontWeight="semibold">
+              {current.title}
+            </Heading>
+          </Flex>
+
+          {/* Description */}
+          <Text color="gray.500" fontSize="sm" lineHeight="1.6" mb={6} pl="48px">
             {current.description}
           </Text>
 
-          <VStack spacing={3}>
+          {/* Actions */}
+          <Flex justify="space-between" align="center">
             <Button
-              colorScheme="teal"
-              w="full"
-              onClick={handleCta}
+              size="sm"
+              variant="ghost"
+              color="gray.400"
+              fontWeight="normal"
+              _hover={{ color: 'gray.600' }}
+              onClick={step > 0 ? () => setStep(s => s - 1) : dismiss}
+              px={0}
             >
-              {current.cta}
+              {step > 0 ? 'Back' : 'Skip setup'}
             </Button>
 
-            {step < STEPS.length - 1 && (
-              <HStack spacing={3} w="full">
-                {step > 0 && (
-                  <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)} flex={1}>
-                    Back
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => setStep(s => s + 1)} flex={1}>
-                  Skip this step
+            <HStack spacing={2}>
+              {step < STEPS.length - 1 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  color="gray.400"
+                  fontWeight="normal"
+                  _hover={{ color: 'gray.600' }}
+                  onClick={() => setStep(s => s + 1)}
+                >
+                  Skip
                 </Button>
-              </HStack>
-            )}
-          </VStack>
+              )}
+              <Button size="sm" colorScheme="teal" onClick={handleCta}>
+                {current.cta}
+              </Button>
+            </HStack>
+          </Flex>
         </Box>
       </ModalContent>
     </Modal>
