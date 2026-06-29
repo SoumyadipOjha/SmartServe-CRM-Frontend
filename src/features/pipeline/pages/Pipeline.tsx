@@ -251,6 +251,7 @@ const Pipeline: React.FC = () => {
     try {
       await DealService.deleteDeal(id);
       setDeals(prev => prev.filter(d => d._id !== id));
+      toast({ title: 'Deal deleted', status: 'info', duration: 2000 });
     } catch {
       toast({ title: 'Failed to delete deal', status: 'error', duration: 2000 });
     }

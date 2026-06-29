@@ -12,6 +12,7 @@ import { FiDownload } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 import Layout from '../../../shared/components/Layout';
 import Pagination from '../../../shared/components/Pagination';
+import EmptyState from '../../../shared/components/EmptyState';
 import OrderService from '../services/order.service';
 import CustomerService from '../../customers/services/customer.service';
 import { Order, Customer, Product } from '../../../shared/types/models';
@@ -227,6 +228,14 @@ const Orders: React.FC = () => {
 
         {loading ? (
           <Text>Loading orders…</Text>
+        ) : orders.length === 0 && !search && !statusFilter ? (
+          <EmptyState
+            icon="📦"
+            title="No orders yet"
+            description="Create your first order to start tracking sales and revenue."
+            ctaLabel="New Order"
+            onCta={onOpen}
+          />
         ) : (
           <>
             <Box overflowX="auto">
@@ -243,7 +252,7 @@ const Orders: React.FC = () => {
                 </Thead>
                 <Tbody>
                   {paginated.length === 0 ? (
-                    <Tr><Td colSpan={6}>{search || statusFilter ? 'No orders match your filters' : 'No orders found'}</Td></Tr>
+                    <Tr><Td colSpan={6} textAlign="center" color="gray.400" py={6}>No orders match your filters</Td></Tr>
                   ) : (
                     paginated.map(order => (
                       <Tr key={order._id}>

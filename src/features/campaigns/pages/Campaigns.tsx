@@ -27,9 +27,10 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import Pagination from '../../../shared/components/Pagination';
 import * as XLSX from 'xlsx';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { AddIcon, RepeatIcon } from '@chakra-ui/icons';
 import Layout from '../../../shared/components/Layout';
+import EmptyState from '../../../shared/components/EmptyState';
 import CampaignService from '../services/campaign.service';
 import { Campaign } from '../../../shared/types/models';
 import CreateCampaign from './CreateCampaign';
@@ -45,6 +46,7 @@ function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
 
 const Campaigns: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -409,6 +411,14 @@ const Campaigns: React.FC = () => {
             <Spinner size="xl" mb={4} color="teal.500" />
             <Text>Loading campaigns...</Text>
           </Box>
+        ) : campaigns.length === 0 && !search && !statusFilter ? (
+          <EmptyState
+            icon="📣"
+            title="No campaigns yet"
+            description="Create your first email campaign to reach your customers at scale."
+            ctaLabel="Create Campaign"
+            onCta={() => navigate('/campaigns/create')}
+          />
         ) : (
           <>
           <Box overflowX="auto">
@@ -439,7 +449,7 @@ const Campaigns: React.FC = () => {
               <Tbody>
                 {paginatedCampaigns.length === 0 ? (
                   <Tr>
-                    <Td colSpan={6}>{search || statusFilter ? 'No campaigns match your filters' : 'No campaigns found'}</Td>
+                    <Td colSpan={6} textAlign="center" color="gray.400" py={6}>No campaigns match your filters</Td>
                   </Tr>
                 ) : (
                   paginatedCampaigns.map((campaign) => (
